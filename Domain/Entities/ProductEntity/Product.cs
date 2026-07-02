@@ -1,4 +1,6 @@
 ﻿using Domain.Entities.CategoryEntity;
+using Domain.Entities.OrderEntity;
+using Domain.Entities.ReviewEntity;
 
 namespace Domain.Entities.ProductEntity;
 
@@ -15,13 +17,12 @@ public class Product
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-
     public int SellerProfileId { get; set; }
     public SellerProfile SellerProfile { get; set; }
-
     public int CategoryId { get; set; }
     public Category Category { get; set; }
-
     public ICollection<ProductImage> Images { get; set; }
     public ICollection<ProductVariant> Variants { get; set; }
+    public ICollection<Review> Reviews { get; set; }
+    public ICollection<OrderItem> OrderItems { get; set; }
 }
