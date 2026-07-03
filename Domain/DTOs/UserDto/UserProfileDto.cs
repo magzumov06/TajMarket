@@ -1,0 +1,10 @@
+﻿namespace Domain.DTOs.UserDto;
+
+public record UserProfileDto(
+    int Id,
+    string FullName,
+    string Email,
+    string? PhoneNumber,
+    string? AvatarUrl,
+    List<string> Roles
+);
