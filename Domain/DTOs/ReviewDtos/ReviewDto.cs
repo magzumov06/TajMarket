@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.ReviewDto;
+﻿namespace Domain.DTOs.ReviewDtos;
 
 public record ReviewDto(
     int Id,

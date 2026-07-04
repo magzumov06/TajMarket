@@ -1,4 +1,6 @@
-﻿using Domain.DTOs.SellerDto;
+﻿using Domain.DTOs.CategoryDtos;
+using Domain.DTOs.ReviewDtos;
+using Domain.DTOs.SellerDto;
 
 namespace Domain.DTOs.ProductDto;
 

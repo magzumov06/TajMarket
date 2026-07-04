@@ -1,4 +1,6 @@
-﻿using Domain.Enums;
+﻿using Domain.DTOs.AddressDtos;
+using Domain.DTOs.PaymentDtos;
+using Domain.Enums;
 namespace Domain.DTOs.OrderDto;
 
 public record OrderDetailDto(
@@ -9,7 +11,7 @@ public record OrderDetailDto(
     decimal SubTotal,
     decimal ShippingCost,
     decimal DiscountAmount,
-    decimal TotalAmount,
+    decimal TotalAmount, 
     AddressDto ShippingAddress,
     List<OrderItemDto> Items,
     PaymentDto? Payment

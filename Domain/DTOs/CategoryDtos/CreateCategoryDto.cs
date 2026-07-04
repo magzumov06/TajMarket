@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Domain.DTOs.CategoryDto;
+namespace Domain.DTOs.CategoryDtos;
 
 public class CreateCategoryDto
 {

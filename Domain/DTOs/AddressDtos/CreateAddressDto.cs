@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.AddressDto;
+﻿namespace Domain.DTOs.AddressDtos;
 
 public record CreateAddressDto(
     string FullName,
