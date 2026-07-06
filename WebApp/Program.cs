@@ -1,5 +1,5 @@
-using Infrastructure.ExtensionMethods;
 using Serilog;
+using WebApp.ExtensionMethods;
 
 var builder = WebApplication.CreateBuilder(args);
 

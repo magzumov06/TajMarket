@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace Infrastructure.ExtensionMethods;
+﻿namespace WebApp.ExtensionMethods;
 
 public static class SwaggerRegister
 {

@@ -1,21 +1,23 @@
 ﻿using System.Net;
 
-namespace Domain.Respoces;
+namespace Domain.Resposes;
 
-public class Responce<T>
+public class Response<T>
 {
     public T? Data { get; set; }
     public string Message { get; set; }
     public int StatusCode { get; set; }
 
-    public Responce(T data)
+    public bool Success => StatusCode >= 200 && StatusCode < 300;
+
+    public Response(T data)
     {
         Data = data;
         Message = "Success";
         StatusCode = 200;
     }
 
-    public Responce(HttpStatusCode statusCode, string message)
+    public Response(HttpStatusCode statusCode, string message)
     {
         StatusCode = (int)statusCode;
         Message = message;

@@ -1,9 +1,7 @@
 ﻿using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Infrastructure.ExtensionMethods;
+namespace WebApp.ExtensionMethods;
 
 public static class DataContextRegister
 {

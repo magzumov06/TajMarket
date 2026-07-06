@@ -1,12 +1,12 @@
 ﻿using Domain.DTOs.CategoryDtos;
-using Domain.Respoces;
+using Domain.Resposes;
 
 namespace Infrastructure.Interfaces;
 
 public interface ICategoryService
 {
-    Task<Responce<string>> CreateCategoryAsync(CreateCategoryDto dto);
-    Task<Responce<string>> DeleteCategoryAsync(int id);
-    Task<Responce<List<CategoryDto>>> GetAllCategoriesAsync();
-    Task<Responce<CategoryDto>> GetCategoryAsync(int id);
+    Task<Response<string>> CreateCategoryAsync(CreateCategoryDto dto);
+    Task<Response<string>> DeleteCategoryAsync(int id);
+    Task<Response<List<CategoryDto>>> GetAllCategoriesAsync();
+    Task<Response<CategoryDto>> GetCategoryAsync(int id);
 }
