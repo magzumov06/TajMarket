@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Domain.DTOs.CartDto;
 using Domain.Entities.CartEntity;
-using Domain.Resposes;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;

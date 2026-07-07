@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Domain.Resposes;
+namespace Domain.Responses;
 
 public class Response<T>
 {

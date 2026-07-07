@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Domain.DTOs.CategoryDtos;
 using Domain.Entities.CategoryEntity;
-using Domain.Resposes;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Helpers;

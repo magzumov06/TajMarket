@@ -5,7 +5,7 @@ using Domain.DTOs.PaymentDtos;
 using Domain.Entities.OrderEntity;
 using Domain.Entities.PaymentEntity;
 using Domain.Enums;
-using Domain.Resposes;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;

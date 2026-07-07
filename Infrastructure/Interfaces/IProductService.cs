@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using Domain.DTOs.ProductDto;
 using Domain.Filters;
-using Domain.Resposes;
+using Domain.Responses;
 using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Interfaces;

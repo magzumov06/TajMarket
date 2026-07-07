@@ -5,7 +5,7 @@ using Domain.DTOs.ReviewDtos;
 using Domain.DTOs.SellerDto;
 using Domain.Entities.ProductEntity;
 using Domain.Filters;
-using Domain.Resposes;
+using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Helpers;
