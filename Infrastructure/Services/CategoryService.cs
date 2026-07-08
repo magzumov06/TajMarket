@@ -7,6 +7,7 @@ using Infrastructure.FileStorage;
 using Infrastructure.Helpers;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Infrastructure.Services;
 
@@ -18,6 +19,7 @@ public class CategoryService(
     {
         try
         {
+            Log.Information("Creating category {CategoryName} with parent id {ParentCategoryId}", dto.Name, dto.ParentCategoryId);
             if (dto.ParentCategoryId.HasValue)
             {
                 var prentExist = await context.Categories.AnyAsync(c=> c.Id == dto.ParentCategoryId);
@@ -47,10 +49,12 @@ public class CategoryService(
             context.Categories.Add(category);
             await context.SaveChangesAsync();
             
+            Log.Information("Category created successfully: {CategoryId}", category.Id);
             return new Response<string>(HttpStatusCode.OK, "Category created");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error creating category {CategoryName}", dto.Name);
             return new Response<string>(HttpStatusCode.InternalServerError, "Interval Server Error");
         }
     }
@@ -59,6 +63,7 @@ public class CategoryService(
     {
         try
         {
+            Log.Information("Deleting category {CategoryId}", id);
             var category = await context.Categories
                 .Include(c=> c.SubCategories)
                 .Include(c=> c.Products)
@@ -79,10 +84,12 @@ public class CategoryService(
             
             context.Categories.Remove(category);
             await context.SaveChangesAsync();
+            Log.Information("Category deleted successfully: {CategoryId}", id);
             return new Response<string>(HttpStatusCode.OK, "Category deleted");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error deleting category {CategoryId}", id);
             return new Response<string>(HttpStatusCode.InternalServerError, "Interval Server Error");
         }
     }
@@ -91,14 +98,18 @@ public class CategoryService(
     {
         try
         {
+            Log.Information("Retrieving full category tree");
             var all = await context.Categories.AsNoTracking().ToListAsync();
 
             var roots = all.Where(c => c.ParentCategoryId == null);
-            return roots.Select(root => MapWithChildren(root, all)).ToList();
+            var tree = roots.Select(root => MapWithChildren(root, all)).ToList();
+            Log.Information("Retrieved {CategoryCount} categories for tree", all.Count);
+            return tree;
         }
         catch (Exception e)
         {
-            throw new Exception(e.Message);
+            Log.Error(e, "Error retrieving category tree");
+            throw;
         }
     }
 
@@ -106,14 +117,22 @@ public class CategoryService(
     {
         try
         {
+            Log.Information("Retrieving category {CategoryId}", id);
             var all = await context.Categories.AsNoTracking().ToListAsync();
             var category = all.FirstOrDefault(c => c.Id == id);
-            return category == null
-                ? new Response<CategoryDto>(HttpStatusCode.NotFound, "Category not found")
-                : new Response<CategoryDto>(MapWithChildren(category, all));
+            if (category == null)
+            {
+                Log.Warning("Category not found: {CategoryId}", id);
+                return new Response<CategoryDto>(HttpStatusCode.NotFound, "Category not found");
+            }
+
+            var result = new Response<CategoryDto>(MapWithChildren(category, all));
+            Log.Information("Retrieved category successfully: {CategoryId}", id);
+            return result;
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error retrieving category {CategoryId}", id);
             return new Response<CategoryDto>(HttpStatusCode.InternalServerError,"Interval Server Error");
         }
     }

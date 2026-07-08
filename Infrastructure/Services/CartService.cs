@@ -5,6 +5,7 @@ using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Infrastructure.Services;
 
@@ -12,6 +13,7 @@ public class CartService(DataContext context) : ICartService
 {
     public async Task<Response<string>> AddToCartAsync(int userId, AddToCartDto dto)
     {
+        Log.ForContext<CartService>().Information("AddToCartAsync started for user {UserId} product {ProductId} variant {ProductVariantId} quantity {Quantity}", userId, dto.ProductId, dto.ProductVariantId, dto.Quantity);
         try
         {
             var product = await context.Products
@@ -45,7 +47,7 @@ public class CartService(DataContext context) : ICartService
 
             if (existingItem != null)
             {
-                existingItem.Quantity += requestedTotalQuantity;
+                existingItem.Quantity = requestedTotalQuantity;
             }
             else
             {
@@ -64,12 +66,14 @@ public class CartService(DataContext context) : ICartService
         }
         catch (Exception e)
         {
+            Log.ForContext<CartService>().Error(e, "AddToCartAsync failed for user {UserId} product {ProductId}", userId, dto.ProductId);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
 
     public async Task<Response<string>> UpdateCartItemAsync(int userId, int cartItemId, UpdateCartItemDto dto)
     {
+        Log.ForContext<CartService>().Information("UpdateCartItemAsync started for user {UserId} cartItem {CartItemId} quantity {Quantity}", userId, cartItemId, dto.Quantity);
         try
         {
             var item = await context.CartItems
@@ -103,6 +107,7 @@ public class CartService(DataContext context) : ICartService
     {
         try
         {
+            Log.Information("Removing cart item {CartItemId} for user {UserId}", cartItemId, userId);
             var item = await context.CartItems
                 .Include(ci => ci.Cart)
                 .FirstOrDefaultAsync(ci => ci.Id == cartItemId && ci.Cart.UserId == userId);
@@ -113,10 +118,12 @@ public class CartService(DataContext context) : ICartService
             var cartId = item.CartId;
             context.CartItems.Remove(item);
             await context.SaveChangesAsync();
+            Log.Information("Cart item {CartItemId} removed from cart {CartId}", cartItemId, cartId);
             return new Response<string>(HttpStatusCode.OK, "Item removed");
         }
         catch (Exception e)
         {
+            Log.Error(e, "RemoveFromCartAsync failed for cart item {CartItemId} and user {UserId}", cartItemId, userId);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
@@ -125,11 +132,15 @@ public class CartService(DataContext context) : ICartService
     {
         try
         {
+            Log.Information("Retrieving cart items for user {UserId}", userId);
             var cart = await GetOrCreateCartAsync(userId);
-            return new Response<CartDto>(await MapAsync(cart.Id));
+            var cartDto = await MapAsync(cart.Id);
+            Log.Information("Retrieved {ItemCount} cart items for user {UserId}", cartDto.Items.Count, userId);
+            return new Response<CartDto>(cartDto);
         }
         catch (Exception e)
         {
+            Log.Error(e, "GetCartItemsAsync failed for user {UserId}", userId);
             return new Response<CartDto>(HttpStatusCode.InternalServerError, "Internal server error");
         }    }
 
@@ -137,6 +148,7 @@ public class CartService(DataContext context) : ICartService
     {
         try
         {
+            Log.Information("Clearing cart for user {UserId}", userId);
             var cart = await context.Carts
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -145,11 +157,12 @@ public class CartService(DataContext context) : ICartService
                 context.CartItems.RemoveRange(cart.Items);
                 await context.SaveChangesAsync();
             }
-            
+            Log.Information("Cart cleared for user {UserId}", userId);
             return new Response<string>(HttpStatusCode.OK, "Cart cleared");
         }
         catch (Exception e)
         {
+            Log.Error(e, "ClearCartAsync failed for user {UserId}", userId);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }

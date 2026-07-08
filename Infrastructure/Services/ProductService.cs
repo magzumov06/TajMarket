@@ -12,16 +12,19 @@ using Infrastructure.Helpers;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Infrastructure.Services;
 
 public class ProductService(DataContext context,
     IFileStorageService fileStorage) : IProductService
 {
+    #region CreateProduct
     public async Task<Response<string>> CreateProductAsync(int sellerUserId, CreateProductDto dto)
     {
         try
         {
+            Log.Information("Creating product for seller {SellerUserId}: {ProductName}", sellerUserId, dto.Name);
             var sellerProfil = await context.SellerProfiles.FirstOrDefaultAsync(sp => sp.UserId == sellerUserId);
             if (sellerProfil == null)
                 return new Response<string>(HttpStatusCode.BadRequest, "Аввал бояд ҳамчун Seller сабт шавед");
@@ -65,18 +68,23 @@ public class ProductService(DataContext context,
             };
             context.Products.Add(product);
             await context.SaveChangesAsync();
+            Log.Information("Product created successfully: {ProductId} for seller {SellerUserId}", product.Id, sellerUserId);
             return new Response<string>(HttpStatusCode.OK, "Product Added successfully");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error creating product for seller {SellerUserId}", sellerUserId);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal Server Error");
         }
     }
+    #endregion
 
+    #region UpdateProduct
     public async Task<Response<string>> UpdateProductAsync(int sellerUserId, int productId, UpdateProductDto dto)
     {
         try
         {
+            Log.Information("Updating product {ProductId} for seller {SellerUserId}", productId, sellerUserId);
             var product = await context.Products
                 .Include(p => p.SellerProfile)
                 .FirstOrDefaultAsync(p => p.Id == productId);
@@ -98,19 +106,23 @@ public class ProductService(DataContext context,
             product.UpdatedAt = DateTime.UtcNow;
             
             await context.SaveChangesAsync();
-            
+            Log.Information("Product updated successfully: {ProductId}", productId);
             return new Response<string>(HttpStatusCode.OK, "Product Updated successfully");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error updating product {ProductId} for seller {SellerUserId}", productId, sellerUserId);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal Server Error");
         }
     }
+    #endregion
 
+    #region DeleteProduct
     public async Task<Response<string>> DeleteProductAsync(int sellerUserId, int productId)
     {
         try
         {
+            Log.Information("Deleting product {ProductId} for seller {SellerUserId}", productId, sellerUserId);
             var product = await context.Products
                 .Include(p => p.SellerProfile)
                 .FirstOrDefaultAsync(p => p.Id == productId);
@@ -124,18 +136,23 @@ public class ProductService(DataContext context,
             product.IsActive = false;
             product.UpdatedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
+            Log.Information("Product deleted successfully: {ProductId}", productId);
             return new Response<string>(HttpStatusCode.OK, "Product Deleted successfully");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error deleting product {ProductId} for seller {SellerUserId}", productId, sellerUserId);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal Server Error");
         }
     }
-
+    #endregion
+    
+    #region UploadProductImage
     public async Task<Response<string>> UploadImageProductAsync(int sellerUserId, int productId, IEnumerable<IFormFile> files)
     {
         try
         {
+            Log.Information("Uploading product images for product {ProductId} and seller {SellerUserId}", productId, sellerUserId);
             var product = await context.Products
                 .Include(p => p.SellerProfile)
                 .Include(product => product.Images)
@@ -162,19 +179,23 @@ public class ProductService(DataContext context,
             
             context.ProductImages.AddRange(newIamges);
             await context.SaveChangesAsync();
-            
+            Log.Information("Uploaded {ImageCount} images for product {ProductId}", newIamges.Count, productId);
             return new Response<string>(HttpStatusCode.OK, "Product Images Uploaded");
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error uploading images for product {ProductId} by seller {SellerUserId}", productId, sellerUserId);
             return new Response<string>(HttpStatusCode.InternalServerError,"Internal Server Error");
         }
     }
-
+    #endregion
+    
+    #region GetDetail
     public async Task<Response<ProductDetailDto>> GetDetailAsync(int id)
     {
         try
         {
+            Log.Information("Retrieving product details for product {ProductId}", id);
             var product = await context.Products
                 .AsNoTracking()
                 .Include(p => p.Images)
@@ -212,18 +233,23 @@ public class ProductService(DataContext context,
                     : 0m,
             reviews
             );
+            Log.Information("Product details retrieved successfully for product {ProductId}", id);
             return new Response<ProductDetailDto>(dto);
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error retrieving product details for product {ProductId}", id);
             return new Response<ProductDetailDto>(HttpStatusCode.InternalServerError, "Internal Server Error");
         }
     }
+    #endregion
 
+    #region GetProductList
     public async Task<PaginationResponse<List<ProductListDto>>> GetProductListAsync(ProductFilter filter)
     {
         try
         {
+            Log.Information("Retrieving product list with filter {@Filter}", filter);
             var query= context.Products
                 .AsNoTracking()
                 .Where(p => p.IsActive)
@@ -267,18 +293,23 @@ public class ProductService(DataContext context,
                 .Select(ToListDto)
                 .Where(p => !filter.MinRating.HasValue || p.AverageRating >= filter.MinRating)
                 .ToList();
+            Log.Information("Product list retrieved: {ItemCount} items, total {TotalCount}", items.Count, totalCount);
             return new PaginationResponse<List<ProductListDto>>(items, totalCount, filter.PageNumber, filter.PageSize);
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error retrieving product list with filter {@Filter}", filter);
             return new PaginationResponse<List<ProductListDto>>(HttpStatusCode.InternalServerError, "Internal Server Error");
         }
     }
+    #endregion
 
+    #region GetBySellerId
     public async Task<Response<List<ProductListDto>>> GetBySellerAsync(int sellerUserId)
     {
         try
         {
+            Log.Information("Retrieving products for seller {SellerUserId}", sellerUserId);
             var sellerProfile = await context.SellerProfiles.FirstOrDefaultAsync(sp => sp.UserId == sellerUserId);
             if (sellerProfile == null)
                 return new Response<List<ProductListDto>>(HttpStatusCode.NotFound, "Seller profile not  found");
@@ -292,13 +323,16 @@ public class ProductService(DataContext context,
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
             
+            Log.Information("Retrieved {ProductCount} products for seller {SellerUserId}", products.Count, sellerUserId);
             return new Response<List<ProductListDto>>(products.Select(ToListDto).ToList());
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error retrieving products for seller {SellerUserId}", sellerUserId);
             return new Response<List<ProductListDto>>(HttpStatusCode.InternalServerError, "Internal Server Error");
         }
     }
+    #endregion
     
     private static ProductListDto ToListDto(Product p) => new(
         p.Id,

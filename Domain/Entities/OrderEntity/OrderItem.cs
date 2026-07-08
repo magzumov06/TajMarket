@@ -9,6 +9,8 @@ public class OrderItem
     public Order Order { get; set; }
     public int ProductId { get; set; }
     public Product Product { get; set; }
+    public int? ProductVariantId { get; set; }
+    public ProductVariant? ProductVariant { get; set; }
     public string ProductName { get; set; }
     public string? ProductImageUrl { get; set; }  
     public int Quantity { get; set; }

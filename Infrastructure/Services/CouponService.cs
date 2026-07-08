@@ -5,6 +5,7 @@ using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Infrastructure.Services;
 
@@ -14,16 +15,19 @@ public class CouponService(DataContext context) : ICouponService
     {
         try
         {
+            Log.Information("Retrieving all active coupons");
             var coupons = await context.Coupons
                 .AsNoTracking()
                 .Where(c => c.IsActive && c.ExpiryDate >= DateTime.UtcNow)
                 .OrderByDescending(c => c.ExpiryDate)
                 .ToListAsync();
 
+            Log.Information("Retrieved {CouponCount} active coupons", coupons.Count);
             return new Response<List<CouponDto>>(coupons.Select(ToDto).ToList());
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error retrieving active coupons");
             return new Response<List<CouponDto>>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
@@ -32,6 +36,7 @@ public class CouponService(DataContext context) : ICouponService
     {
         try
         {
+            Log.Information("Creating coupon {CouponCode} with discount {DiscountPercent}", dto.Code, dto.DiscountPercent);
             if (dto.DiscountPercent is <= 0 or > 100)
                 return new Response<CouponDto>(HttpStatusCode.BadRequest,"Фоизи тахфиф бояд аз 0 то 100 бошад");
 
@@ -56,10 +61,12 @@ public class CouponService(DataContext context) : ICouponService
             context.Coupons.Add(coupon);
             await context.SaveChangesAsync();
 
+            Log.Information("Coupon created successfully: {CouponId}", coupon.Id);
             return new Response<CouponDto>(ToDto(coupon));
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error creating coupon {CouponCode}", dto.Code);
             return new Response<CouponDto>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
@@ -68,17 +75,23 @@ public class CouponService(DataContext context) : ICouponService
     {
         try
         {
-            var coupon = await context.Coupons.FirstOrDefaultAsync(c => c.Code == code);
+            Log.Information("Deactivating coupon {CouponCode}", code);
+            if (string.IsNullOrWhiteSpace(code))
+                return new Response<string>(HttpStatusCode.BadRequest, "Coupon code is required");
+
+            var coupon = await context.Coupons.FirstOrDefaultAsync(c => c.Code == code.Trim().ToUpper());
             if (coupon == null)
-                return new Response<string>("Купон ёфт нашуд");
+                return new Response<string>(HttpStatusCode.NotFound, "Купон ёфт нашуд");
 
             coupon.IsActive = false;
             await context.SaveChangesAsync();
             
-            return new Response<string>( HttpStatusCode.OK,"Купон ғайрифаъол карда шуд");        }
-        
+            Log.Information("Coupon deactivated successfully: {CouponId}", coupon.Id);
+            return new Response<string>(HttpStatusCode.OK,"Купон ғайрифаъол карда шуд");
+        }
         catch (Exception e)
         {
+            Log.Error(e, "Error deactivating coupon {CouponCode}", code);
             return new Response<string>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
@@ -87,6 +100,10 @@ public class CouponService(DataContext context) : ICouponService
     {
         try
         {
+            Log.Information("Validating coupon {CouponCode} for order amount {OrderAmount}", code, orderAmount);
+            if (string.IsNullOrWhiteSpace(code))
+                return new Response<CouponValidationResult>(HttpStatusCode.BadRequest, "Coupon code is required");
+
             var coupon = await context.Coupons.FirstOrDefaultAsync(c => c.Code == code.Trim().ToUpper());
 
             if (coupon == null || !coupon.IsActive)
@@ -102,10 +119,12 @@ public class CouponService(DataContext context) : ICouponService
             if (coupon.MaxDiscountAmount.HasValue && discount > coupon.MaxDiscountAmount.Value)
                 discount = coupon.MaxDiscountAmount.Value;
 
+            Log.Information("Coupon validated successfully: {CouponId} with discount {Discount}", coupon.Id, discount);
             return new Response<CouponValidationResult>(new CouponValidationResult(coupon.Id, discount));
         }
         catch (Exception e)
         {
+            Log.Error(e, "Error validating coupon {CouponCode}", code);
             return new Response<CouponValidationResult>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }

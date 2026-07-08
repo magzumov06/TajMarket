@@ -9,6 +9,7 @@ using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Infrastructure.Services;
 
@@ -17,8 +18,10 @@ public class OrderService(
     ICouponService couponService,
     INotificationService notificationService) : IOrderService
 {
+    #region CreateOrder
     public async Task<Response<string>> CreateOrderAsync(int userId, CreateOrderDto dto)
     {
+        Log.ForContext<OrderService>().Information("CreateOrderAsync started: user={UserId}, shippingAddress={ShippingAddressId}, coupon={CouponCode}", userId, dto.ShippingAddressId, dto.CouponCode);
         try
         {
             var address = await context.Addresses.FirstOrDefaultAsync(a => a.Id == dto.ShippingAddressId && a.UserId == userId);
@@ -55,7 +58,7 @@ public class OrderService(
                 if (!validation.Success)
                     return new Response<string>(HttpStatusCode.BadRequest, validation.Message ?? "Купон нодуруст аст" );
                 
-                discountAmount = validation.Data!.DiscountAmount;
+                discountAmount = Math.Min(validation.Data!.DiscountAmount, subTotal);
                 appliedCouponId = validation.Data.CouponId;
             }
 
@@ -79,6 +82,7 @@ public class OrderService(
                 OrderItems = cart.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
+                    ProductVariantId = i.ProductVariantId,
                     ProductName = i.Product.Name,
                     ProductImageUrl = i.Product.Images.FirstOrDefault(im => im.IsMain)?.Url
                                       ?? i.Product.Images.FirstOrDefault()?.Url,
@@ -119,24 +123,91 @@ public class OrderService(
             await notificationService.NotifyAsync(userId, "Фармоиш сабт шуд",
                 $"Фармоиши шумо №{order.OrderNumber} бо маблағи {totalAmount:0.00} сомонӣ қабул шуд");
             
+            Log.Information("Order {OrderNumber} created successfully for user {UserId}", order.OrderNumber, userId);
             return new Response<string>(HttpStatusCode.OK,"Order successfully created");
             
         }
         catch (Exception e)
         {
+            Log.Error(e, "CreateOrderAsync failed for user {UserId}", userId);
             return new Response<string>(HttpStatusCode.InternalServerError,"Internal server error");
         }
     }
-
+    #endregion
+    
+    #region CancelOrder
     public async Task<Response<string>> CancelOrderAsync(int userId, int orderId)
     {
-        throw new NotImplementedException();
-    }
+        try
+        {
+            Log.Information("CancelOrderAsync started for order {OrderId} and user {UserId}", orderId, userId);
+            var order = await context.Orders
+                .Include(o => o.OrderItems)
+                .Include(o => o.Payment)
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+            
+            if (order == null)
+                return new Response<string>(HttpStatusCode.NotFound,"Фармоиш ёфт нашуд");
+            
+            if (order.Status is not (OrderStatus.Pending or OrderStatus.Confirmed))
+                return new Response<string>(HttpStatusCode.BadRequest,"Ин фармоиш дигар бекор карда намешавад");
+            
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            
+            foreach (var item in order.OrderItems)
+            {
+                if (item.ProductVariantId.HasValue)
+                {
+                    var variant = await context.ProductVariants.FirstOrDefaultAsync(v => v.Id == item.ProductVariantId.Value);
+                    if (variant != null)
+                        variant.StockQuantity += item.Quantity;
+                    else
+                    {
+                        var product = await context.Products.FirstOrDefaultAsync(p => p.Id == item.ProductId);
+                        if (product != null)
+                            product.StockQuantity += item.Quantity;
+                    }
+                }
+                else
+                {
+                    var product = await context.Products.FirstOrDefaultAsync(p => p.Id == item.ProductId);
+                    if (product != null)
+                        product.StockQuantity += item.Quantity;
+                }
+            }
 
+            order.Status = OrderStatus.Cancelled;
+            if (order.Payment != null)
+            {
+                if (order.Payment.Status == PaymentStatus.Completed)
+                    order.Payment.Status = PaymentStatus.Refunded;
+                else if (order.Payment.Status == PaymentStatus.Pending)
+                    order.Payment.Status = PaymentStatus.Failed;
+            }
+
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            await notificationService.NotifyAsync(userId, "Фармоиш бекор шуд",
+                $"Фармоиши шумо №{order.OrderNumber} бекор карда шуд");
+
+            Log.Information("Order {OrderId} cancelled successfully", orderId);
+            return new Response<string>(HttpStatusCode.OK, "Order successfully cancelled");
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "CancelOrderAsync failed for order {OrderId} and user {UserId}", orderId, userId);
+            return new Response<string>(HttpStatusCode.InternalServerError,"Internal server error");
+        } 
+    }
+    #endregion
+
+    #region GetOrderList
     public async Task<Response<List<OrderListDto>>> GetOrderListAsync(int userId)
     {
         try
         {
+            Log.Information("Retrieving order list for user {UserId}", userId);
             var orders = await context.Orders
                 .AsNoTracking()
                 .Include(o => o.OrderItems)
@@ -144,18 +215,23 @@ public class OrderService(
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
+            Log.Information("Retrieved {OrderCount} orders for user {UserId}", orders.Count, userId);
             return  new Response<List<OrderListDto>>(orders.Select(ToListDto).ToList());
         }
         catch (Exception e)
         {
+            Log.Error(e, "GetOrderListAsync failed for user {UserId}", userId);
             return new Response<List<OrderListDto>>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
+    #endregion
 
+    #region GetOrderDetails
     public async Task<Response<OrderDetailDto>> GetOrderDetailAsync(int orderId, int userId)
     {
         try
         {
+            Log.Information("Retrieving order detail for order {OrderId} and user {UserId}", orderId, userId);
             var order = await context.Orders
                 .AsNoTracking()
                 .Include(o => o.OrderItems)
@@ -164,20 +240,29 @@ public class OrderService(
                 .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
 
             if (order == null)
+            {
+                Log.Warning("Order not found: {OrderId} for user {UserId}", orderId, userId);
                 return new Response<OrderDetailDto>(HttpStatusCode.BadRequest, "Фармоиш ёфт нашуд");
+            }
 
+            Log.Information("Order detail retrieved successfully for order {OrderId}", orderId);
             return new Response<OrderDetailDto>(ToDetailDto(order));
         }
         catch (Exception e)
         {
+            Log.Error(e, "GetOrderDetailAsync failed for order {OrderId} and user {UserId}", orderId, userId);
             return new Response<OrderDetailDto>(HttpStatusCode.InternalServerError,"Internal server error");
         }
     }
+    #endregion
+
+    #region GetBySellerId
 
     public async Task<Response<List<OrderListDto>>> GetBySellerIdAsync(int sellerUserId)
     {
         try
         {
+            Log.Information("Retrieving orders for seller user {SellerUserId}", sellerUserId);
             var sellerProfile = await context.SellerProfiles.FirstOrDefaultAsync(sp => sp.UserId == sellerUserId);
             if (sellerProfile == null)
                 return new Response<List<OrderListDto>>(HttpStatusCode.NotFound, "Seller profile not found");
@@ -189,18 +274,25 @@ public class OrderService(
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
+            Log.Information("Retrieved {OrderCount} orders for seller user {SellerUserId}", orders.Count, sellerUserId);
             return new Response<List<OrderListDto>>(orders.Select(ToListDto).ToList());
         }
         catch (Exception e)
         {
+            Log.Error(e, "GetBySellerIdAsync failed for seller user {SellerUserId}", sellerUserId);
             return new Response<List<OrderListDto>>(HttpStatusCode.InternalServerError,"Internal server error");
         }
     }
+
+    #endregion
+
+    #region UpdateStatus
 
     public async Task<Response<OrderDetailDto>> UpdateStatusAsync(int orderId, UpdateOrderStatusDto dto)
     {
         try
         {
+            Log.Information("Updating status for order {OrderId} to {Status}", orderId, dto.Status);
             var order = await context.Orders
                 .Include(o => o.OrderItems)
                 .Include(o => o.ShippingAddress)
@@ -226,13 +318,17 @@ public class OrderService(
             await notificationService.NotifyAsync(order.UserId, "Ҳолати фармоиш тағйир ёфт",
                 $"Фармоиши №{order.OrderNumber} ҳоло дар ҳолати «{StatusLabel(dto.Status)}» аст");
 
+            Log.Information("Order {OrderId} status updated to {Status}", orderId, dto.Status);
             return new Response<OrderDetailDto>(ToDetailDto(order));
         }
         catch (Exception e)
         {
+            Log.Error(e, "UpdateStatusAsync failed for order {OrderId}", orderId);
             return new Response<OrderDetailDto>(HttpStatusCode.InternalServerError,"Internal server error");
         }
     }
+
+    #endregion
     
     private static decimal UnitPrice(Domain.Entities.CartEntity.CartItem item) =>
         (item.Product.DiscountPrice ?? item.Product.Price) + (item.ProductVariant?.ExtraPrice ?? 0);
