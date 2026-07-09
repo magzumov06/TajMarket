@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities;
+﻿using Domain.Entities.UserEntity;
+
+namespace Domain.Entities;
 
 public class Notification
 {

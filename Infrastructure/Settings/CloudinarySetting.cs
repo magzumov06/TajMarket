@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.FileStorage;
+﻿namespace Infrastructure.Settings;
 
 public class CloudinarySetting
 {

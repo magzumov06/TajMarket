@@ -23,4 +23,11 @@ public class Response<T>
         Message = message;
         Data = default;
     }
+    
+    public Response(T data, string message)
+    {
+        Data = data;
+        Message = message;
+        StatusCode = (int)HttpStatusCode.OK;
+    }
 }

@@ -7,27 +7,36 @@ using Infrastructure.FileStorage;
 using Infrastructure.Helpers;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
 
 public class CategoryService(
     DataContext context,
-    IFileStorageService  fileStorage) : ICategoryService
+    IFileStorageService fileStorage,
+    ILogger<CategoryService> logger) : ICategoryService
 {
     public async Task<Response<string>> CreateCategoryAsync(CreateCategoryDto dto)
     {
         try
         {
-            Log.Information("Creating category {CategoryName} with parent id {ParentCategoryId}", dto.Name, dto.ParentCategoryId);
+            logger.LogInformation("Creating category {CategoryName} with parent id {ParentCategoryId}", dto.Name, dto.ParentCategoryId);
+
             if (dto.ParentCategoryId.HasValue)
             {
-                var prentExist = await context.Categories.AnyAsync(c=> c.Id == dto.ParentCategoryId);
+                var prentExist = await context.Categories
+                    .AnyAsync(c => c.Id == dto.ParentCategoryId);
+
                 if (!prentExist)
+                {
+                    logger.LogWarning("Parent category does not exist {ParentCategoryId}", dto.ParentCategoryId);
+                    
                     return new Response<string>(HttpStatusCode.NotFound, "Parent category does not exist");
+                }
             }
 
             var baseSlug = SlugHelper.GenerateSlug(dto.Name);
+
             var slug = await context.Categories.AnyAsync(c => c.Slug == baseSlug)
                 ? SlugHelper.WithUniqueSuffix(baseSlug)
                 : baseSlug;
@@ -41,109 +50,162 @@ public class CategoryService(
 
             if (dto.Icon != null)
             {
+                logger.LogInformation("Uploading category image {CategoryName}", dto.Name);
+
                 var uploaded = await fileStorage.UploadImageAsync(dto.Icon, "categories");
+
                 category.IconUrl = uploaded.Url;
                 category.IconPublicId = uploaded.PublicId;
             }
-            
+
             context.Categories.Add(category);
             await context.SaveChangesAsync();
-            
-            Log.Information("Category created successfully: {CategoryId}", category.Id);
+
+            logger.LogInformation("Category created successfully {CategoryId}", category.Id);
+
             return new Response<string>(HttpStatusCode.OK, "Category created");
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error creating category {CategoryName}", dto.Name);
+            logger.LogError(e, "Error creating category {CategoryName}", dto.Name);
+
             return new Response<string>(HttpStatusCode.InternalServerError, "Interval Server Error");
         }
     }
+
 
     public async Task<Response<string>> DeleteCategoryAsync(int id)
     {
         try
         {
-            Log.Information("Deleting category {CategoryId}", id);
+            logger.LogInformation("Deleting category {CategoryId}", id);
+
             var category = await context.Categories
-                .Include(c=> c.SubCategories)
-                .Include(c=> c.Products)
+                .Include(c => c.SubCategories)
+                .Include(c => c.Products)
                 .FirstOrDefaultAsync(c => c.Id == id);
-            
+
             if (category == null)
+            {
+                logger.LogWarning("Category not found {CategoryId}", id);
+
                 return new Response<string>(HttpStatusCode.NotFound, "Категория ёфт нашуд");
+            }
 
             if (category.SubCategories?.Count > 0)
+            {
+                logger.LogWarning("Category has sub categories {CategoryId}", id);
+
                 return new Response<string>(HttpStatusCode.Conflict, "Аввал зеркатегорияҳоро нест кунед");
+            }
 
             if (category.Products?.Count > 0)
-                return new Response<string>(HttpStatusCode.Conflict,
-                    "Ин категория маҳсулот дорад, аввал маҳсулотро кӯчонед ё нест кунед");
-            
-            if(!string.IsNullOrEmpty(category.IconPublicId))
+            {
+                logger.LogWarning("Category has products {CategoryId}", id);
+
+                return new Response<string>(HttpStatusCode.Conflict, "Ин категория маҳсулот дорад, аввал маҳсулотро кӯчонед ё нест кунед");
+            }
+
+            if (!string.IsNullOrEmpty(category.IconPublicId))
+            {
                 await fileStorage.DeleteImageAsync(category.IconPublicId);
-            
+            }
+
             context.Categories.Remove(category);
             await context.SaveChangesAsync();
-            Log.Information("Category deleted successfully: {CategoryId}", id);
+
+            logger.LogInformation("Category deleted successfully {CategoryId}", id);
+
             return new Response<string>(HttpStatusCode.OK, "Category deleted");
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error deleting category {CategoryId}", id);
+            logger.LogError(e, "Error deleting category {CategoryId}", id);
+
             return new Response<string>(HttpStatusCode.InternalServerError, "Interval Server Error");
         }
     }
+
 
     public async Task<List<CategoryDto>> GetTreeAsync()
     {
         try
         {
-            Log.Information("Retrieving full category tree");
-            var all = await context.Categories.AsNoTracking().ToListAsync();
+            logger.LogInformation("Retrieving full category tree");
+
+            var all = await context.Categories
+                .AsNoTracking()
+                .ToListAsync();
 
             var roots = all.Where(c => c.ParentCategoryId == null);
-            var tree = roots.Select(root => MapWithChildren(root, all)).ToList();
-            Log.Information("Retrieved {CategoryCount} categories for tree", all.Count);
+
+            var tree = roots
+                .Select(root => MapWithChildren(root, all))
+                .ToList();
+
+            logger.LogInformation("Retrieved {CategoryCount} categories for tree", all.Count);
+
             return tree;
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error retrieving category tree");
+            logger.LogError(e, "Error retrieving category tree");
+
             throw;
         }
     }
+
 
     public async Task<Response<CategoryDto>> GetCategoryAsync(int id)
     {
         try
         {
-            Log.Information("Retrieving category {CategoryId}", id);
-            var all = await context.Categories.AsNoTracking().ToListAsync();
+            logger.LogInformation("Retrieving category {CategoryId}", id);
+
+            var all = await context.Categories
+                .AsNoTracking()
+                .ToListAsync();
+
             var category = all.FirstOrDefault(c => c.Id == id);
+
             if (category == null)
             {
-                Log.Warning("Category not found: {CategoryId}", id);
+                logger.LogWarning("Category not found {CategoryId}", id);
+
                 return new Response<CategoryDto>(HttpStatusCode.NotFound, "Category not found");
             }
 
-            var result = new Response<CategoryDto>(MapWithChildren(category, all));
-            Log.Information("Retrieved category successfully: {CategoryId}", id);
+            var result = new Response<CategoryDto>(
+                MapWithChildren(category, all));
+
+            logger.LogInformation("Retrieved category successfully {CategoryId}", id);
+
             return result;
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error retrieving category {CategoryId}", id);
-            return new Response<CategoryDto>(HttpStatusCode.InternalServerError,"Interval Server Error");
+            logger.LogError(e, "Error retrieving category {CategoryId}", id);
+
+            return new Response<CategoryDto>(HttpStatusCode.InternalServerError, "Interval Server Error");
         }
     }
-    
-    private static CategoryDto MapWithChildren(Category category, List<Category> all)
+
+
+    private static CategoryDto MapWithChildren(
+        Category category,
+        List<Category> all)
     {
         var children = all
             .Where(c => c.ParentCategoryId == category.Id)
             .Select(c => MapWithChildren(c, all))
             .ToList();
 
-        return new CategoryDto(category.Id, category.Name, category.Slug, category.IconUrl, category.ParentCategoryId, children);
+        return new CategoryDto(
+            category.Id,
+            category.Name,
+            category.Slug,
+            category.IconUrl,
+            category.ParentCategoryId,
+            children);
     }
 }

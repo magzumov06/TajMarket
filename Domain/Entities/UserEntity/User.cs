@@ -4,7 +4,7 @@ using Domain.Entities.OrderEntity;
 using Domain.Entities.ReviewEntity;
 using Microsoft.AspNetCore.Identity;
 
-namespace Domain.Entities;
+namespace Domain.Entities.UserEntity;
 
 public class User : IdentityUser<int>
 {

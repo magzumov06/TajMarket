@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities.CartEntity;
+﻿using Domain.Entities.UserEntity;
+
+namespace Domain.Entities.CartEntity;
 
 public class Cart
 {

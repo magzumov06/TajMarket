@@ -5,5 +5,6 @@ public enum PaymentMethod
     Card,
     Cash,
     Wallet,
-    BankTransfer
+    BankTransfer,
+    Stripe
 }

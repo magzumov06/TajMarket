@@ -6,6 +6,7 @@ using Domain.Entities.OrderEntity;
 using Domain.Entities.PaymentEntity;
 using Domain.Entities.ProductEntity;
 using Domain.Entities.ReviewEntity;
+using Domain.Entities.UserEntity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

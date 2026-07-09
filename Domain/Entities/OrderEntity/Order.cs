@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.AddressEntity;
 using Domain.Entities.PaymentEntity;
+using Domain.Entities.UserEntity;
 using Domain.Enums;
 
 namespace Domain.Entities.OrderEntity;

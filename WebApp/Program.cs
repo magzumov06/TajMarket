@@ -1,3 +1,7 @@
+using Domain.Entities.UserEntity;
+using Infrastructure.Data;
+using Infrastructure.Settings;
+using Microsoft.AspNetCore.Identity;
 using Serilog;
 using WebApp.ExtensionMethods;
 
@@ -5,27 +9,35 @@ var builder = WebApplication.CreateBuilder(args);
 
 //Serilog
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(
-        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Debug)
-    .WriteTo.File(
-        "logs/log-.txt",
-        rollingInterval: RollingInterval.Day,
-        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+    .MinimumLevel.Debug()
     .Enrich.FromLogContext()
-    .MinimumLevel.Debug() 
+    .WriteTo.Console()
+    .WriteToServiceFiles("Logs")
     .CreateLogger();
+
+builder.Host.UseSerilog();
+
+
+builder.Services.Configure<CloudinarySetting>(
+    builder.Configuration.GetSection("CloudinarySettings"));
 
 //DataContext
 builder.Services.AddDataContext(builder.Configuration);
 
+builder.Services.AddIdentity<User, IdentityRole<int>>()
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders();
+
 //Swagger
 builder.Services.RegisterSwagger();
+
+//Stripe Payment Service
+builder.Services.AddStripeServices(builder.Configuration);
+
+//Application Services
+builder.Services.AddApplicationServices();
+
 builder.Host.UseSerilog();
-
-
-
-
-
 
 
 builder.Services.AddHttpContextAccessor();
@@ -36,7 +48,11 @@ builder.Services.AddHttpContextAccessor();
 
 
 
-builder.Services.AddAuthorization(opt => { opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin")); });
+builder.Services.AddAuthorization(opt => 
+{ 
+    opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    opt.AddPolicy("SellerOnly", p => p.RequireRole("Seller", "Admin"));
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.ProductEntity;
+using Domain.Entities.UserEntity;
 
 namespace Domain.Entities;
 

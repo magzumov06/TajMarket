@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities.AddressEntity;
+﻿using Domain.Entities.UserEntity;
+
+namespace Domain.Entities.AddressEntity;
 
 public class Address
 {
