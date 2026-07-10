@@ -1,20 +1,14 @@
 using Domain.DTOs.PaymentDtos;
-using Domain.Responses;
 using Infrastructure.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class PaymentController(IPaymentService paymentService) : ControllerBase
+
+public class PaymentController(IPaymentService paymentService) : BaseApiController
 {
-    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-
+    
     [HttpPost("process")]
     public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentDto dto)
     {

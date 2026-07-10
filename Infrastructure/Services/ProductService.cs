@@ -94,7 +94,7 @@ public class ProductService(DataContext context,
             if(product.SellerProfile.UserId != sellerUserId)
                 return new Response<string>(HttpStatusCode.Forbidden, "You don't have the seller profile");
             
-            if(dto.DiscountPrice.HasValue && dto.DiscountPrice >= product.Price)
+            if(dto.DiscountPrice.HasValue && dto.DiscountPrice >= dto.Price)
                 return new Response<string>(HttpStatusCode.Forbidden, "Price must be greater than DiscountPrice");
             
             product.Name = dto.Name;

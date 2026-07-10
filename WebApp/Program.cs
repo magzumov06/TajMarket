@@ -1,9 +1,16 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using Domain.Entities.UserEntity;
 using Infrastructure.Data;
 using Infrastructure.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using WebApp.ExtensionMethods;
+
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,11 +22,11 @@ Log.Logger = new LoggerConfiguration()
     .WriteToServiceFiles("Logs")
     .CreateLogger();
 
-builder.Host.UseSerilog();
-
-
 builder.Services.Configure<CloudinarySetting>(
     builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
 
 //DataContext
 builder.Services.AddDataContext(builder.Configuration);
@@ -36,6 +43,29 @@ builder.Services.AddStripeServices(builder.Configuration);
 
 //Application Services
 builder.Services.AddApplicationServices();
+
+//Identity
+builder.Services.RegisterIdentity();
+
+
+builder.Services.AddAuthentication(options => {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
+        };
+    });
+
+
+
 
 builder.Host.UseSerilog();
 
@@ -73,6 +103,24 @@ try
     app.UseAuthorization();
     app.UseHttpsRedirection();
     app.MapControllers();
+    
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var userManager = services.GetRequiredService<UserManager<User>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+            var data =  services.GetRequiredService<DataContext>();
+            await Seed.SeedRole(roleManager);
+            await Seed.SeedAdmin(userManager, roleManager);
+            await data.Database.MigrateAsync();
+        }
+        catch
+        {
+            //
+        }
+    }
     app.Run();
 }
 catch (Exception ex)

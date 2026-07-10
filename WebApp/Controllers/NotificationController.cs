@@ -1,17 +1,10 @@
 using Infrastructure.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class NotificationController(INotificationService notificationService) : ControllerBase
+public class NotificationController(INotificationService notificationService) : BaseApiController
 {
-    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
     
     [HttpPut("{notificationId}/read")]
     public async Task<IActionResult> MarkAsRead(int notificationId)

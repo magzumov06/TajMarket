@@ -11,7 +11,7 @@ public class AuthService(
     UserManager<User> userManager,
     ITokenService tokenService) : IAuthService
 {
-    private const string DefaultRole = "Buyer";
+    private const string DefaultRole = "Customer";
 
     public async Task<Response<AuthResponseDto>> RegisterAsync(RegisterDto dto)
     {

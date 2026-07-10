@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class CouponController(ICouponService couponService) : ControllerBase
+
+public class CouponController(ICouponService couponService) : BaseApiController
 {
 
     [HttpPost]

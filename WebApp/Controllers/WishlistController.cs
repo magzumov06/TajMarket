@@ -1,18 +1,12 @@
 using Infrastructure.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class WishlistController(IWishlistService wishlistService) : ControllerBase
+
+public class WishlistController(IWishlistService wishlistService) : BaseApiController
 {
-    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-
+    
     [HttpPost("products/{productId}")]
     public async Task<IActionResult> AddToWishlist(int productId)
     {

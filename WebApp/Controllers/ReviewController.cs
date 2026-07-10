@@ -2,17 +2,13 @@ using Domain.DTOs.ReviewDtos;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class ReviewController(IReviewService reviewService) : ControllerBase
-{
-    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+public class ReviewController(IReviewService reviewService) : BaseApiController
+{
     
     [HttpPost]
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)

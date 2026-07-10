@@ -1,13 +1,11 @@
 using Domain.DTOs.CategoryDtos;
 using Infrastructure.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class CategoryController(ICategoryService categoryService) : ControllerBase
+
+public class CategoryController(ICategoryService categoryService) : BaseApiController
 {
 
     [HttpPost]

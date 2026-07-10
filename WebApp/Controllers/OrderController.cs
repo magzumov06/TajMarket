@@ -2,17 +2,11 @@ using Domain.DTOs.OrderDto;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebApp.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class OrderController(IOrderService orderService) : ControllerBase
+public class OrderController(IOrderService orderService) : BaseApiController
 {
-    private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
     
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)

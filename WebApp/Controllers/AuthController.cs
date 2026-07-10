@@ -12,7 +12,7 @@ public class AuthController(IAuthService authService) : BaseApiController
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var result = await authService.RegisterAsync(dto);
-        return StatusCode((int)result.StatusCode);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [AllowAnonymous]
@@ -20,6 +20,6 @@ public class AuthController(IAuthService authService) : BaseApiController
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var result = await authService.LoginAsync(dto);
-        return StatusCode((int)result.StatusCode);
+        return StatusCode((int)result.StatusCode, result);
     }
 }
