@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Domain.DTOs.ProductDto;
+﻿using Domain.DTOs.ProductDto;
 using Domain.Filters;
 using Domain.Responses;
 using Microsoft.AspNetCore.Http;

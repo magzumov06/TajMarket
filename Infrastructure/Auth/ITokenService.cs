@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using Domain.Entities.UserEntity;
+﻿using Domain.Entities.UserEntity;
 
 namespace Infrastructure.Auth;
 
