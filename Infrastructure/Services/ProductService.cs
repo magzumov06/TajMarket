@@ -31,7 +31,7 @@ public class ProductService(DataContext context,
             
             var categoryExist = await context.Categories.AnyAsync(c => c.Id == dto.CategoryId);
             if (!categoryExist)
-                return new Response<string>(HttpStatusCode.BadRequest, "Category not found");
+                return new Response<string>(HttpStatusCode.NotFound, "Category not found");
             
             if(dto.Price <= 0)
                 return new Response<string>(HttpStatusCode.BadRequest, "Price must be greater than 0");

@@ -21,6 +21,9 @@ public static class ServiceRegister
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ISellerService, SellerService>();
+        services.AddScoped<IAddressService, AddressService>();
 
     }
     
