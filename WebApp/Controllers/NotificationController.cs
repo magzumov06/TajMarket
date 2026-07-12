@@ -1,8 +1,10 @@
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApp.Controllers;
 
+[Authorize]
 public class NotificationController(INotificationService notificationService) : BaseApiController
 {
     

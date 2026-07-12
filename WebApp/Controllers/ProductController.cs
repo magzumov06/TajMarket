@@ -12,6 +12,7 @@ public class ProductController(IProductService productService) : BaseApiControll
 {
     
     [HttpPost]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
     {
         var res = await productService.CreateProductAsync(UserId, dto);
@@ -20,6 +21,7 @@ public class ProductController(IProductService productService) : BaseApiControll
 
 
     [HttpPut("{productId}")]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> UpdateProduct(int productId, [FromBody] UpdateProductDto dto)
     {
         var res = await productService.UpdateProductAsync(UserId, productId, dto);
@@ -28,6 +30,7 @@ public class ProductController(IProductService productService) : BaseApiControll
 
 
     [HttpDelete("{productId}")]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> DeleteProduct(int productId)
     {
         var res = await productService.DeleteProductAsync(UserId, productId);
@@ -36,6 +39,7 @@ public class ProductController(IProductService productService) : BaseApiControll
 
 
     [HttpPost("{productId}/images")]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> UploadProductImages(int productId, [FromForm] IFormFileCollection files)
     {
         var res = await productService.UploadImageProductAsync(UserId, productId, files);
@@ -62,6 +66,7 @@ public class ProductController(IProductService productService) : BaseApiControll
 
     
     [HttpGet("seller/products")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetSellerProducts()
     {
         var res = await productService.GetBySellerAsync(UserId);

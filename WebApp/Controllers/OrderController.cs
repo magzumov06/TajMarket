@@ -9,6 +9,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
 {
     
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
     {
         var res = await orderService.CreateOrderAsync(UserId, dto);
@@ -17,6 +18,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
 
     [HttpPost("{orderId}/cancel")]
+    [AllowAnonymous]
     public async Task<IActionResult> CancelOrder(int orderId)
     {
         var res = await orderService.CancelOrderAsync(UserId, orderId);
@@ -25,6 +27,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetOrderList()
     {
         var res = await orderService.GetOrderListAsync(UserId);
@@ -33,6 +36,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
 
     [HttpGet("{orderId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetOrderDetail(int orderId)
     {
         var res = await orderService.GetOrderDetailAsync(orderId, UserId);
@@ -41,7 +45,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
 
     [HttpGet("seller/orders")]
-    [Authorize(Policy = "SellerOnly")]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> GetSellerOrders()
     {
         var res = await orderService.GetBySellerIdAsync(UserId);
@@ -50,7 +54,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
 
     [HttpPut("{orderId}/status")]
-    [Authorize(Policy = "SellerOnly")]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
     {
         var res = await orderService.UpdateStatusAsync(orderId, dto);

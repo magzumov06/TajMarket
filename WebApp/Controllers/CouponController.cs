@@ -10,7 +10,7 @@ public class CouponController(ICouponService couponService) : BaseApiController
 {
 
     [HttpPost]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponDto dto)
     {
         var res = await couponService.CreateAsync(dto);
@@ -18,7 +18,7 @@ public class CouponController(ICouponService couponService) : BaseApiController
     }
 
     [HttpPut("{code}/deactivate")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeactivateCoupon(string code)
     {
         var res = await couponService.DeactivateAsync(code);
