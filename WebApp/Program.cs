@@ -127,7 +127,3 @@ catch (Exception ex)
 {
     Log.Fatal(ex, "Host terminated unexpectedly");
 }
-finally
-{
-    Log.CloseAndFlush();
-}

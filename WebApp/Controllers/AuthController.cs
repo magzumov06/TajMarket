@@ -22,4 +22,12 @@ public class AuthController(IAuthService authService) : BaseApiController
         var result = await authService.LoginAsync(dto);
         return StatusCode((int)result.StatusCode, result);
     }
+    
+    [Authorize]
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePassword changePasswordDto)
+    {
+        var res = await authService.ChangePassword(changePasswordDto,UserId);
+        return Ok(res);
+    }
 }

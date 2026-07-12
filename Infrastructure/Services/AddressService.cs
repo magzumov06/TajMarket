@@ -283,8 +283,7 @@ public class AddressService(
         {
             a.IsDefault = false;
         }
-
-
+        
         if (current.Count > 0)
         {
             logger.LogInformation("Removed previous default addresses for user {UserId}", userId);
