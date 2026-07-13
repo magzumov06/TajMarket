@@ -30,6 +30,7 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<WishlistItem> WishlistItems { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Coupon> Coupons { get; set; }
+    public DbSet<OtpCode> OtpCodes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -146,6 +147,12 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
         builder.Entity<Coupon>()
             .HasIndex(c => c.Code)
             .IsUnique();
+        
+        builder.Entity<OtpCode>()
+            .HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         foreach (var property in builder.Model.GetEntityTypes()
                      .SelectMany(t => t.GetProperties())

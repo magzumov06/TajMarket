@@ -2,10 +2,13 @@
 
 namespace Domain.DTOs.AuthDto;
 
-public record RegisterDto(
-    string FullName,
-    string Email,
-    string Password,
+public class RegisterDto
+{
+    public required string FullName {get; set;}
+    public required string Email{get; set;}
+    public required string Password{get; set;}
+
     [Phone]
-    [StringLength(13 , MinimumLength = 9 , ErrorMessage = "Phone length must be between 9 and 13")]
-    string PhoneNumber);
+    [StringLength(13, MinimumLength = 9, ErrorMessage = "Phone length must be between 9 and 13")]
+    public required string PhoneNumber{get; set;}
+}

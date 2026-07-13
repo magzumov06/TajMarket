@@ -24,6 +24,8 @@ public static class ServiceRegister
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ISellerService, SellerService>();
         services.AddScoped<IAddressService, AddressService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IOtpService, OtpService>();
 
     }
     
