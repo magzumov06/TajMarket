@@ -62,11 +62,20 @@ public class ProductService(
                 return new Response<string>(HttpStatusCode.BadRequest, "DiscountPrice must be less than Price");
             }
 
-            var basesSlug = SlugHelper.GenerateSlug(dto.Name);
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return new Response<string>(HttpStatusCode.BadRequest, "Product name is required");
+            }
+            
+            var baseSlug = SlugHelper.GenerateSlug(dto.Name);
+            var slug = baseSlug;
+            var suffix = 2;
 
-            var slug = await context.Products.AnyAsync(p => p.Slug == basesSlug)
-                ? SlugHelper.GenerateSlug(basesSlug)
-                : basesSlug;
+            while (await context.Products.AnyAsync(p => p.Slug == slug))
+            {
+                slug = $"{baseSlug}-{suffix}";
+                suffix++;
+            }
 
             var product = new Product
             {
@@ -410,8 +419,14 @@ public class ProductService(
             if (filter.MaxPrice.HasValue)
                 query = query.Where(p =>
                     (p.DiscountPrice ?? p.Price) <= filter.MaxPrice);
-
-
+            
+            if (filter.MinRating.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Reviews.Any() &&
+                    p.Reviews.Average(r => (decimal)r.Rating) >= filter.MinRating.Value);
+            }
+            
             query = filter.SortBy switch
             {
                 "price_asc" =>
@@ -445,9 +460,6 @@ public class ProductService(
 
             var items = products
                 .Select(ToListDto)
-                .Where(p =>
-                    !filter.MinRating.HasValue ||
-                    p.AverageRating >= filter.MinRating)
                 .ToList();
 
 

@@ -60,6 +60,10 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<Product>()
+            .HasIndex(p => p.Slug)
+            .IsUnique();
+        
         builder.Entity<Cart>()
             .HasOne(c => c.User)
             .WithOne(u => u.Cart)

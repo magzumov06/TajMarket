@@ -1,5 +1,6 @@
 using Domain.DTOs.PaymentDtos;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -10,6 +11,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
 {
     
     [HttpPost("process")]
+    [Authorize]
     public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentDto dto)
     {
         var res = await paymentService.ProcessAsync(UserId, dto);
@@ -18,6 +20,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
 
 
     [HttpGet("order/{orderId}")]
+    [Authorize]
     public async Task<IActionResult> GetPaymentByOrder(int orderId)
     {
         var res = await paymentService.GetByOrderIdAsync(UserId, orderId);

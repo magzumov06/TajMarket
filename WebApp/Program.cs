@@ -33,9 +33,6 @@ builder.Services.Configure<EmailSettings>(
 //DataContext
 builder.Services.AddDataContext(builder.Configuration);
 
-builder.Services.AddIdentity<User, IdentityRole<int>>()
-    .AddEntityFrameworkStores<DataContext>()
-    .AddDefaultTokenProviders();
 
 //Swagger
 builder.Services.RegisterSwagger();
@@ -118,9 +115,10 @@ try
             await Seed.SeedAdmin(userManager, roleManager);
             await data.Database.MigrateAsync();
         }
-        catch
+        catch(Exception ex)
         {
-            //
+            Log.Error(ex, "Database migration/seed failed");
+            throw;
         }
     }
     app.Run();

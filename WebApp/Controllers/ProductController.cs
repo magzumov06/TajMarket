@@ -66,7 +66,7 @@ public class ProductController(IProductService productService) : BaseApiControll
 
     
     [HttpGet("seller/products")]
-    [AllowAnonymous]
+    [Authorize(Roles = "Seller")]
     public async Task<IActionResult> GetSellerProducts()
     {
         var res = await productService.GetBySellerAsync(UserId);
