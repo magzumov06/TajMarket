@@ -1,6 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Domain.Entities.UserEntity;
+using Hangfire;
+using Hangfire.PostgreSql;
+using Infrastructure.Background;
 using Infrastructure.Data;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -46,6 +49,14 @@ builder.Services.AddApplicationServices();
 //Identity
 builder.Services.RegisterIdentity();
 
+//Hangfire
+builder.Services.AddHangfire(config =>
+{
+    config.UsePostgreSqlStorage(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddAuthentication(options => {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -102,6 +113,7 @@ try
     app.UseAuthorization();
     app.UseHttpsRedirection();
     app.MapControllers();
+    app.UseHangfireDashboard("/hangfire");
     
     using (var scope = app.Services.CreateScope())
     {
@@ -121,6 +133,11 @@ try
             throw;
         }
     }
+    RecurringJob.AddOrUpdate<IUnconfirmedUserCleanupService>(
+        "delete-unconfirmed-users",
+        service => service.DeleteOldUnconfirmedUsersAsync(),
+        Cron.Daily);
+    
     app.Run();
 }
 catch (Exception ex)

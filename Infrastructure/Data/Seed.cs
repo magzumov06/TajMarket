@@ -22,6 +22,7 @@ public static class Seed
                 UserName = "Admin",
                 Email = "admin@gmail.com",
                 PhoneNumber = "987654321",
+                EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
             };
             var res = userManager.CreateAsync(newUser, "zxcv0987?");

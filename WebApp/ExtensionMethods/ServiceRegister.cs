@@ -1,4 +1,5 @@
 using Infrastructure.Auth;
+using Infrastructure.Background;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
@@ -26,6 +27,7 @@ public static class ServiceRegister
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
 
     }
     
