@@ -1,7 +1,6 @@
 ﻿using Domain.Entities.ProductEntity;
-using Domain.Entities.UserEntity;
 
-namespace Domain.Entities;
+namespace Domain.Entities.UserEntity;
 
 public class SellerProfile
 {

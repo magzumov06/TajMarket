@@ -28,7 +28,7 @@ public static class ServiceRegister
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
-
+        services.AddScoped<ICourierService, CourierService>();  
     }
     
 }

@@ -31,6 +31,7 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<OtpCode> OtpCodes { get; set; }
+    public DbSet<Courier> Couriers { get; set; }   
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -158,6 +159,22 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Courier>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Courier>()
+            .HasIndex(c => c.UserId)
+            .IsUnique();
+
+        builder.Entity<Order>()
+            .HasOne(o => o.Courier)
+            .WithMany()
+            .HasForeignKey(o => o.CourierId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
         foreach (var property in builder.Model.GetEntityTypes()
                      .SelectMany(t => t.GetProperties())
                      .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))

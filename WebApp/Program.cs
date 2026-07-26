@@ -92,6 +92,7 @@ builder.Services.AddAuthorization(opt =>
 { 
     opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
     opt.AddPolicy("SellerOnly", p => p.RequireRole("Seller", "Admin"));
+    opt.AddPolicy("CourierOnly", p => p.RequireRole("Courier" , "Admin"));  
 });
 
 builder.Services.AddControllers();

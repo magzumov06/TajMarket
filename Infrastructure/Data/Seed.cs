@@ -39,7 +39,8 @@ public static class Seed
         {
             new(Role.Admin.ToString()),
             new(Role.Customer.ToString()),
-            new(Role.Seller.ToString())
+            new(Role.Seller.ToString()),
+            new (Role.Courier.ToString())
         };
         var roles = await roleManager.Roles.ToListAsync();
         foreach (var role in newRole)

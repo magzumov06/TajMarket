@@ -1,6 +1,7 @@
 ﻿using Domain.Entities.CategoryEntity;
 using Domain.Entities.OrderEntity;
 using Domain.Entities.ReviewEntity;
+using Domain.Entities.UserEntity;
 
 namespace Domain.Entities.ProductEntity;
 

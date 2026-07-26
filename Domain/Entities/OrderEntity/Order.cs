@@ -23,4 +23,6 @@ public class Order
     public ICollection<OrderItem> OrderItems { get; set; }
     public Payment? Payment { get; set; }
     
+    public int? CourierId { get; set; }
+    public Courier? Courier { get; set; }
 }
