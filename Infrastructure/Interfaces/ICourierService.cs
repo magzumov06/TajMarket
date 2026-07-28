@@ -19,7 +19,9 @@ public interface ICourierService
 
     Task<Response<List<CourierDto>>> GetAvailableCouriersAsync();
     Task<Response<string>> AssignCourierToOrderAsync(int orderId, int courierId);
+    Task<Response<string>> AutoAssignCourierToOrderAsync(int orderId); 
 
+    
     Task<Response<List<CourierOrderDto>>> GetMyOrdersAsync(int userId);
     Task<PaginationResponse<List<CourierOrderDto>>> GetHistoryAsync(int userId, CourierHistoryFilter filter);
 }

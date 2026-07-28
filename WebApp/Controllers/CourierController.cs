@@ -123,4 +123,12 @@ public class CouriersController(ICourierService courierService) : BaseApiControl
         var res = await courierService.GetHistoryAsync(UserId, filter);
         return StatusCode((int)res.StatusCode, res);
     }
+    
+    [HttpPost("auto-assign/{orderId}")]
+    [Authorize(Roles = "Admin,Seller")]
+    public async Task<IActionResult> AutoAssignCourierToOrder(int orderId)
+    {
+        var res = await courierService.AutoAssignCourierToOrderAsync(orderId);
+        return StatusCode((int)res.StatusCode, res);
+    }   
 }

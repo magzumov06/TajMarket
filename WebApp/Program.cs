@@ -95,6 +95,9 @@ builder.Services.AddAuthorization(opt =>
     opt.AddPolicy("CourierOnly", p => p.RequireRole("Courier" , "Admin"));  
 });
 
+builder.Services.AddSignalR();                      // <-- нав
+builder.Services.AddControllers();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -114,6 +117,8 @@ try
     app.UseAuthorization();
     app.UseHttpsRedirection();
     app.MapControllers();
+    app.MapControllers();
+    app.MapHub<Infrastructure.Realtime.CourierHub>("/hubs/couriers");  
     app.UseHangfireDashboard("/hangfire");
     
     using (var scope = app.Services.CreateScope())
