@@ -7,5 +7,7 @@ public record CreateAddressDto(
     string City,
     string Street,
     string? PostalCode,
-    bool IsDefault
+    bool IsDefault,
+    double? Latitude,    
+    double? Longitude 
 );

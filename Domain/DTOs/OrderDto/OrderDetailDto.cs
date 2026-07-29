@@ -14,5 +14,7 @@ public record OrderDetailDto(
     decimal TotalAmount, 
     AddressDto ShippingAddress,
     List<OrderItemDto> Items,
-    PaymentDto? Payment
+    PaymentDto? Payment,
+    CourierInfoDto? Courier,
+    DateTime? CustomerConfirmedAt 
 );

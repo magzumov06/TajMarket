@@ -1,4 +1,5 @@
 using Domain.DTOs.OrderDto;
+using Domain.Filters;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,6 @@ namespace WebApp.Controllers;
 
 public class OrderController(IOrderService orderService) : BaseApiController
 {
-    
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
@@ -28,9 +28,9 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetOrderList()
+    public async Task<IActionResult> GetOrderList([FromQuery] OrderFilter filter)
     {
-        var res = await orderService.GetOrderListAsync(UserId);
+        var res = await orderService.GetOrderListAsync(UserId, filter);
         return StatusCode((int)res.StatusCode, res);
     }
 
@@ -46,9 +46,9 @@ public class OrderController(IOrderService orderService) : BaseApiController
 
     [HttpGet("seller/orders")]
     [Authorize(Roles = "Seller")]
-    public async Task<IActionResult> GetSellerOrders()
+    public async Task<IActionResult> GetSellerOrders([FromQuery] OrderFilter filter)
     {
-        var res = await orderService.GetBySellerIdAsync(UserId);
+        var res = await orderService.GetBySellerIdAsync(UserId, filter);
         return StatusCode((int)res.StatusCode, res);
     }
 
@@ -57,7 +57,7 @@ public class OrderController(IOrderService orderService) : BaseApiController
     [Authorize(Roles = "Seller")]
     public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
     {
-        var res = await orderService.UpdateStatusAsync(orderId, dto);
+        var res = await orderService.UpdateStatusAsync(UserId, orderId, dto);
         return StatusCode((int)res.StatusCode, res);
     }
 }

@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 //Serilog
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
+    .MinimumLevel.Information()
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteToServiceFiles("Logs")
@@ -27,6 +27,9 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Services.Configure<CloudinarySetting>(
     builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.Configure<ShippingSetting>(               
+    builder.Configuration.GetSection("ShippingSettings"));
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 

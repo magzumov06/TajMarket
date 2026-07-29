@@ -87,7 +87,9 @@ public class AddressService(
                 City = dto.City,
                 Street = dto.Street,
                 PostalCode = dto.PostalCode,
-                IsDefault = isFirstAddress || dto.IsDefault
+                IsDefault = isFirstAddress || dto.IsDefault,
+                Latitude = dto.Latitude,      
+                Longitude = dto.Longitude
             };
 
 
@@ -140,7 +142,9 @@ public class AddressService(
             address.City = dto.City;
             address.Street = dto.Street;
             address.PostalCode = dto.PostalCode;
-
+            address.Latitude = dto.Latitude;      // <-- нав
+            address.Longitude = dto.Longitude;
+            
             if (dto.IsDefault && !address.IsDefault)
             {
                 await UnsetPreviousDefaultAsync(userId);
@@ -299,6 +303,8 @@ public class AddressService(
         a.City,
         a.Street,
         a.PostalCode,
-        a.IsDefault
+        a.IsDefault,
+        a.Latitude,     
+        a.Longitude 
     );
 }

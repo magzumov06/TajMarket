@@ -1,5 +1,5 @@
 ﻿using Domain.DTOs.OrderDto;
-using Domain.Entities.OrderEntity;
+using Domain.Filters;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
@@ -8,8 +8,11 @@ public interface IOrderService
 {
     Task<Response<string>> CreateOrderAsync(int userId, CreateOrderDto dto);
     Task<Response<string>> CancelOrderAsync(int userId, int orderId);
-    Task<Response<List<OrderListDto>>> GetOrderListAsync(int userId);
+    Task<PaginationResponse<List<OrderListDto>>> GetOrderListAsync(int userId, OrderFilter filter);
     Task<Response<OrderDetailDto>> GetOrderDetailAsync(int orderId, int userId);
-    Task<Response<List<OrderListDto>>> GetBySellerIdAsync(int sellerUserId);
-    Task<Response<OrderDetailDto>> UpdateStatusAsync(int orderId, UpdateOrderStatusDto dto);
+    Task<PaginationResponse<List<OrderListDto>>> GetBySellerIdAsync(int sellerUserId, OrderFilter filter);
+    Task<Response<OrderDetailDto>> UpdateStatusAsync(int sellerUserId, int orderId, UpdateOrderStatusDto dto);
+
+    Task<Response<OrderPreviewDto>> CalculateTotalPriceAsync(int userId, CalculateTotalPriceDto dto);   
+    Task<Response<OrderDetailDto>> CompleteOrderAsync(int userId, int orderId);                         
 }

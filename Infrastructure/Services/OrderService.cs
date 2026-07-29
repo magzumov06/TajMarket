@@ -1,15 +1,23 @@
 ﻿using System.Net;
 using Domain.DTOs.AddressDtos;
+using Domain.DTOs.CourierDto;
 using Domain.DTOs.OrderDto;
 using Domain.DTOs.PaymentDtos;
+using Domain.Entities.AddressEntity;
 using Domain.Entities.OrderEntity;
 using Domain.Entities.PaymentEntity;
+using Domain.Entities.UserEntity;
 using Domain.Enums;
+using Domain.Filters;
 using Domain.Responses;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
+using Infrastructure.Realtime;
+using Infrastructure.Settings;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services;
 
@@ -17,6 +25,8 @@ public class OrderService(
     DataContext context,
     ICouponService couponService,
     INotificationService notificationService,
+    IHubContext<CourierHub> hubContext,
+    IOptions<ShippingSetting> shippingSettings,
     ILogger<OrderService> logger) : IOrderService
 {
     #region CreateOrder
@@ -31,117 +41,11 @@ public class OrderService(
 
         try
         {
-            var address = await context.Addresses
-                .FirstOrDefaultAsync(a =>
-                    a.Id == dto.ShippingAddressId &&
-                    a.UserId == userId);
+            var (pricing, errorStatus, errorMessage) =
+                await BuildPricingAsync(userId, dto.ShippingAddressId, dto.CouponCode);
 
-
-            if (address == null)
-            {
-                logger.LogWarning(
-                    "Shipping address not found {ShippingAddressId} for user {UserId}",
-                    dto.ShippingAddressId,
-                    userId);
-
-                return new Response<string>(
-                    HttpStatusCode.BadRequest,
-                    "Address not found");
-            }
-
-
-            var cart = await context.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
-                .ThenInclude(p => p.Images)
-                .Include(c => c.Items)
-                .ThenInclude(i => i.ProductVariant)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
-
-
-            if (cart == null || cart.Items.Count == 0)
-            {
-                logger.LogWarning(
-                    "Cart is empty for user {UserId}",
-                    userId);
-
-                return new Response<string>(
-                    HttpStatusCode.BadRequest,
-                    "Cart is empty");
-            }
-
-
-            foreach (var item in cart.Items)
-            {
-                if (!item.Product.IsActive)
-                {
-                    logger.LogWarning(
-                        "Product {ProductId} is inactive",
-                        item.ProductId);
-
-                    return new Response<string>(
-                        HttpStatusCode.BadRequest,
-                        $"Маҳсулоти '{item.Product.Name}' дигар дастрас нест");
-                }
-
-
-                var availableStock =
-                    item.ProductVariant?.StockQuantity ??
-                    item.Product.StockQuantity;
-
-
-                if (item.Quantity > availableStock)
-                {
-                    logger.LogWarning(
-                        "Not enough stock for product {ProductId}",
-                        item.ProductId);
-
-                    return new Response<string>(
-                        HttpStatusCode.BadRequest,
-                        $"Барои '{item.Product.Name}' танҳо {availableStock} дона дар анбор мондааст");
-                }
-            }
-
-
-            var subTotal = cart.Items.Sum(i => UnitPrice(i) * i.Quantity);
-
-
-            decimal discountAmount = 0;
-            int? appliedCouponId = null;
-
-
-            if (!string.IsNullOrWhiteSpace(dto.CouponCode))
-            {
-                var validation = await couponService
-                    .ValidateAsync(dto.CouponCode, subTotal);
-
-
-                if (!validation.Success)
-                {
-                    logger.LogWarning(
-                        "Invalid coupon {CouponCode}",
-                        dto.CouponCode);
-
-                    return new Response<string>(
-                        HttpStatusCode.BadRequest,
-                        validation.Message ?? "Купон нодуруст аст");
-                }
-
-
-                discountAmount = Math.Min(
-                    validation.Data!.DiscountAmount,
-                    subTotal);
-
-                appliedCouponId = validation.Data.CouponId;
-            }
-
-
-            const decimal shippingCost = 0;
-
-            var totalAmount =
-                subTotal -
-                discountAmount +
-                shippingCost;
+            if (pricing == null)
+                return new Response<string>(errorStatus, errorMessage!);
 
 
             await using var transaction =
@@ -154,14 +58,14 @@ public class OrderService(
                 UserId = userId,
                 OrderDate = DateTime.UtcNow,
                 Status = OrderStatus.Pending,
-                SubTotal = subTotal,
-                ShippingCost = shippingCost,
-                DiscountAmount = discountAmount,
-                TotalAmount = totalAmount,
+                SubTotal = pricing.SubTotal,
+                ShippingCost = pricing.ShippingCost,
+                DiscountAmount = pricing.DiscountAmount,
+                TotalAmount = pricing.TotalAmount,
                 Note = dto.Note,
                 ShippingAddressId = dto.ShippingAddressId,
 
-                OrderItems = cart.Items.Select(i => new OrderItem
+                OrderItems = pricing.Cart.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
                     ProductVariantId = i.ProductVariantId,
@@ -180,7 +84,7 @@ public class OrderService(
             context.Orders.Add(order);
 
 
-            foreach (var item in cart.Items)
+            foreach (var item in pricing.Cart.Items)
             {
                 if (item.ProductVariant != null)
                     item.ProductVariant.StockQuantity -= item.Quantity;
@@ -192,20 +96,20 @@ public class OrderService(
             context.Payments.Add(new Payment
             {
                 Order = order,
-                Amount = totalAmount,
+                Amount = pricing.TotalAmount,
                 Method = dto.PaymentMethod,
                 Status = PaymentStatus.Pending
             });
 
 
-            context.CartItems.RemoveRange(cart.Items);
+            context.CartItems.RemoveRange(pricing.Cart.Items);
 
 
             await context.SaveChangesAsync();
 
 
-            if (appliedCouponId.HasValue)
-                await couponService.IncrementUsageAsync(appliedCouponId.Value);
+            if (pricing.AppliedCouponId.HasValue)
+                await couponService.IncrementUsageAsync(pricing.AppliedCouponId.Value);
 
 
             await transaction.CommitAsync();
@@ -214,7 +118,7 @@ public class OrderService(
             await notificationService.NotifyAsync(
                 userId,
                 "Фармоиш сабт шуд",
-                $"Фармоиши шумо №{order.OrderNumber} бо маблағи {totalAmount:0.00} сомонӣ қабул шуд");
+                $"Фармоиши шумо №{order.OrderNumber} бо маблағи {pricing.TotalAmount:0.00} сомонӣ қабул шуд");
 
 
             logger.LogInformation(
@@ -238,6 +142,56 @@ public class OrderService(
             return new Response<string>(
                 HttpStatusCode.InternalServerError,
                 "Internal server error");
+        }
+    }
+
+    #endregion
+
+    #region CalculateTotalPrice
+
+    public async Task<Response<OrderPreviewDto>> CalculateTotalPriceAsync(int userId, CalculateTotalPriceDto dto)
+    {
+        try
+        {
+            logger.LogInformation(
+                "CalculateTotalPriceAsync started for user {UserId}, shippingAddress={ShippingAddressId}",
+                userId, dto.ShippingAddressId);
+
+            var (pricing, errorStatus, errorMessage) =
+                await BuildPricingAsync(userId, dto.ShippingAddressId, dto.CouponCode);
+
+            if (pricing == null)
+                return new Response<OrderPreviewDto>(errorStatus, errorMessage!);
+
+
+            var items = pricing.Cart.Items.Select(i => new OrderPreviewItemDto(
+                i.ProductId,
+                i.Product.Name,
+                i.Product.Images.FirstOrDefault(im => im.IsMain)?.Url
+                    ?? i.Product.Images.FirstOrDefault()?.Url,
+                i.Quantity,
+                UnitPrice(i),
+                UnitPrice(i) * i.Quantity)).ToList();
+
+            var preview = new OrderPreviewDto(
+                items,
+                pricing.SubTotal,
+                pricing.DiscountAmount,
+                pricing.ShippingCost,
+                pricing.TotalAmount);
+
+
+            logger.LogInformation(
+                "CalculateTotalPriceAsync completed for user {UserId}, total {TotalAmount}",
+                userId, pricing.TotalAmount);
+
+            return new Response<OrderPreviewDto>(preview);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "CalculateTotalPriceAsync failed for user {UserId}", userId);
+
+            return new Response<OrderPreviewDto>(HttpStatusCode.InternalServerError, "Internal server error");
         }
     }
 
@@ -344,6 +298,9 @@ public class OrderService(
             }
 
 
+            await ReleaseCourierIfAssignedAsync(order);
+
+
             await context.SaveChangesAsync();
 
             await transaction.CommitAsync();
@@ -380,35 +337,54 @@ public class OrderService(
     }
 
     #endregion
-
-
+    
     #region GetOrderList
 
-    public async Task<Response<List<OrderListDto>>> GetOrderListAsync(int userId)
+    public async Task<PaginationResponse<List<OrderListDto>>> GetOrderListAsync(int userId, OrderFilter filter)
     {
         try
         {
             logger.LogInformation(
-                "Retrieving order list for user {UserId}",
-                userId);
+                "Retrieving order list for user {UserId} with filter {@Filter}",
+                userId, filter);
 
 
-            var orders = await context.Orders
+            var query = context.Orders
                 .AsNoTracking()
                 .Include(o => o.OrderItems)
                 .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.OrderDate)
+                .AsQueryable();
+
+            if (filter.Status.HasValue)
+                query = query.Where(o => o.Status == filter.Status.Value);
+
+            query = filter.SortBy switch
+            {
+                "date_asc" => query.OrderBy(o => o.OrderDate),
+                _ => query.OrderByDescending(o => o.OrderDate)
+            };
+
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
 
             logger.LogInformation(
-                "Retrieved {OrderCount} orders for user {UserId}",
+                "Retrieved {OrderCount} orders for user {UserId}, total {TotalCount}",
                 orders.Count,
-                userId);
+                userId,
+                totalCount);
 
 
-            return new Response<List<OrderListDto>>(
-                orders.Select(ToListDto).ToList());
+            return new PaginationResponse<List<OrderListDto>>(
+                orders.Select(ToListDto).ToList(),
+                totalCount,
+                filter.PageNumber,
+                filter.PageSize);
         }
         catch (Exception e)
         {
@@ -418,15 +394,14 @@ public class OrderService(
                 userId);
 
 
-            return new Response<List<OrderListDto>>(
+            return new PaginationResponse<List<OrderListDto>>(
                 HttpStatusCode.InternalServerError,
                 "Internal server error");
         }
     }
 
     #endregion
-
-
+    
     #region GetOrderDetails
 
     public async Task<Response<OrderDetailDto>> GetOrderDetailAsync(
@@ -446,6 +421,8 @@ public class OrderService(
                 .Include(o => o.OrderItems)
                 .Include(o => o.ShippingAddress)
                 .Include(o => o.Payment)
+                .Include(o => o.Courier)
+                .ThenInclude(c => c!.User)
                 .FirstOrDefaultAsync(o =>
                     o.Id == orderId &&
                     o.UserId == userId);
@@ -460,7 +437,7 @@ public class OrderService(
 
 
                 return new Response<OrderDetailDto>(
-                    HttpStatusCode.BadRequest,
+                    HttpStatusCode.NotFound,
                     "Фармоиш ёфт нашуд");
             }
 
@@ -491,13 +468,13 @@ public class OrderService(
 
     #region GetBySellerId
 
-    public async Task<Response<List<OrderListDto>>> GetBySellerIdAsync(int sellerUserId)
+    public async Task<PaginationResponse<List<OrderListDto>>> GetBySellerIdAsync(int sellerUserId, OrderFilter filter)
     {
         try
         {
             logger.LogInformation(
-                "Retrieving orders for seller user {SellerUserId}",
-                sellerUserId);
+                "Retrieving orders for seller user {SellerUserId} with filter {@Filter}",
+                sellerUserId, filter);
 
 
             var sellerProfile = await context.SellerProfiles
@@ -511,30 +488,50 @@ public class OrderService(
                     sellerUserId);
 
 
-                return new Response<List<OrderListDto>>(
+                return new PaginationResponse<List<OrderListDto>>(
                     HttpStatusCode.NotFound,
                     "Seller profile not found");
             }
 
 
-            var orders = await context.Orders
+            var query = context.Orders
                 .AsNoTracking()
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .Where(o => o.OrderItems.Any(oi =>
                     oi.Product.SellerProfileId == sellerProfile.Id))
-                .OrderByDescending(o => o.OrderDate)
+                .AsQueryable();
+
+            if (filter.Status.HasValue)
+                query = query.Where(o => o.Status == filter.Status.Value);
+
+            query = filter.SortBy switch
+            {
+                "date_asc" => query.OrderBy(o => o.OrderDate),
+                _ => query.OrderByDescending(o => o.OrderDate)
+            };
+
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
 
             logger.LogInformation(
-                "Retrieved {OrderCount} orders for seller user {SellerUserId}",
+                "Retrieved {OrderCount} orders for seller user {SellerUserId}, total {TotalCount}",
                 orders.Count,
-                sellerUserId);
+                sellerUserId,
+                totalCount);
 
 
-            return new Response<List<OrderListDto>>(
-                orders.Select(ToListDto).ToList());
+            return new PaginationResponse<List<OrderListDto>>(
+                orders.Select(ToListDto).ToList(),
+                totalCount,
+                filter.PageNumber,
+                filter.PageSize);
         }
         catch (Exception e)
         {
@@ -544,33 +541,50 @@ public class OrderService(
                 sellerUserId);
 
 
-            return new Response<List<OrderListDto>>(
+            return new PaginationResponse<List<OrderListDto>>(
                 HttpStatusCode.InternalServerError,
                 "Internal server error");
         }
     }
 
     #endregion
-
-
+    
     #region UpdateStatus
 
     public async Task<Response<OrderDetailDto>> UpdateStatusAsync(
+        int sellerUserId,
         int orderId,
         UpdateOrderStatusDto dto)
     {
         try
         {
             logger.LogInformation(
-                "Updating status for order {OrderId} to {Status}",
+                "Updating status for order {OrderId} to {Status} by seller user {SellerUserId}",
                 orderId,
-                dto.Status);
+                dto.Status,
+                sellerUserId);
+
+
+            var sellerProfile = await context.SellerProfiles
+                .FirstOrDefaultAsync(sp => sp.UserId == sellerUserId);
+
+            if (sellerProfile == null)
+            {
+                logger.LogWarning("Seller profile not found for user {SellerUserId}", sellerUserId);
+
+                return new Response<OrderDetailDto>(
+                    HttpStatusCode.NotFound,
+                    "Профили фурӯшанда ёфт нашуд");
+            }
 
 
             var order = await context.Orders
                 .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
                 .Include(o => o.ShippingAddress)
                 .Include(o => o.Payment)
+                .Include(o => o.Courier)
+                .ThenInclude(c => c!.User)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
 
 
@@ -584,6 +598,21 @@ public class OrderService(
                 return new Response<OrderDetailDto>(
                     HttpStatusCode.NotFound,
                     "Фармоиш ёфт нашуд");
+            }
+
+
+            var ownsOrder = order.OrderItems.Any(oi =>
+                oi.Product.SellerProfileId == sellerProfile.Id);
+
+            if (!ownsOrder)
+            {
+                logger.LogWarning(
+                    "Seller user {SellerUserId} tried to update order {OrderId} they do not own",
+                    sellerUserId, orderId);
+
+                return new Response<OrderDetailDto>(
+                    HttpStatusCode.Forbidden,
+                    "Шумо ба ин фармоиш дастрасӣ надоред");
             }
 
 
@@ -609,6 +638,12 @@ public class OrderService(
             {
                 order.Payment.Status = PaymentStatus.Completed;
                 order.Payment.PaidAt = DateTime.UtcNow;
+            }
+
+
+            if (dto.Status is OrderStatus.Delivered or OrderStatus.Cancelled or OrderStatus.Returned)
+            {
+                await ReleaseCourierIfAssignedAsync(order);
             }
 
 
@@ -645,6 +680,287 @@ public class OrderService(
     }
 
     #endregion
+
+    #region CompleteOrder
+
+    public async Task<Response<OrderDetailDto>> CompleteOrderAsync(int userId, int orderId)
+    {
+        try
+        {
+            logger.LogInformation(
+                "CompleteOrderAsync started for order {OrderId} by user {UserId}", orderId, userId);
+
+            var order = await context.Orders
+                .Include(o => o.OrderItems)
+                .Include(o => o.ShippingAddress)
+                .Include(o => o.Payment)
+                .Include(o => o.Courier)
+                .ThenInclude(c => c!.User)
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+
+            if (order == null)
+            {
+                logger.LogWarning("Order not found {OrderId} for user {UserId}", orderId, userId);
+
+                return new Response<OrderDetailDto>(HttpStatusCode.NotFound, "Фармоиш ёфт нашуд");
+            }
+
+
+            if (order.Status is not (OrderStatus.Shipped or OrderStatus.Delivered))
+            {
+                logger.LogWarning(
+                    "Order {OrderId} cannot be completed, current status {Status}", orderId, order.Status);
+
+                return new Response<OrderDetailDto>(HttpStatusCode.BadRequest,
+                    "Фармоиш ҳанӯз фиристода нашудааст, тасдиқи қабул имконнопазир аст");
+            }
+
+
+            if (order.CustomerConfirmedAt.HasValue)
+            {
+                logger.LogWarning("Order {OrderId} already confirmed by customer", orderId);
+
+                return new Response<OrderDetailDto>(HttpStatusCode.Conflict,
+                    "Шумо аллакай қабули ин фармоишро тасдиқ кардаед");
+            }
+
+
+            order.CustomerConfirmedAt = DateTime.UtcNow;
+
+            if (order.Status != OrderStatus.Delivered)
+            {
+                order.Status = OrderStatus.Delivered;
+
+                if (order.Payment is { Status: PaymentStatus.Pending })
+                {
+                    order.Payment.Status = PaymentStatus.Completed;
+                    order.Payment.PaidAt = DateTime.UtcNow;
+                }
+            }
+
+
+            await ReleaseCourierIfAssignedAsync(order);
+
+
+            await context.SaveChangesAsync();
+
+
+            await notificationService.NotifyAsync(
+                order.UserId,
+                "Фармоиш анҷом ёфт",
+                $"Шумо қабули фармоиши №{order.OrderNumber}-ро тасдиқ кардед. Ташаккур!");
+
+
+            logger.LogInformation(
+                "Order {OrderId} completed/confirmed by customer {UserId}", orderId, userId);
+
+            return new Response<OrderDetailDto>(ToDetailDto(order));
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "CompleteOrderAsync failed for order {OrderId}", orderId);
+
+            return new Response<OrderDetailDto>(HttpStatusCode.InternalServerError, "Internal server error");
+        }
+    }
+
+    #endregion
+
+
+    // ---------------- Ёрирасонҳои дохилӣ ----------------
+
+    private class PricingResult
+    {
+        public required Domain.Entities.CartEntity.Cart Cart { get; init; }
+        public required Address Address { get; init; }
+        public required decimal SubTotal { get; init; }
+        public required decimal DiscountAmount { get; init; }
+        public int? AppliedCouponId { get; init; }
+        public required decimal ShippingCost { get; init; }
+        public decimal TotalAmount => SubTotal - DiscountAmount + ShippingCost;
+    }
+
+    private async Task<(PricingResult? Result, HttpStatusCode ErrorStatus, string? ErrorMessage)> BuildPricingAsync(
+        int userId, int shippingAddressId, string? couponCode)
+    {
+        var address = await context.Addresses
+            .FirstOrDefaultAsync(a =>
+                a.Id == shippingAddressId &&
+                a.UserId == userId);
+
+        if (address == null)
+        {
+            logger.LogWarning(
+                "Shipping address not found {ShippingAddressId} for user {UserId}",
+                shippingAddressId, userId);
+
+            return (null, HttpStatusCode.BadRequest, "Address not found");
+        }
+
+
+        var cart = await context.Carts
+            .Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images)
+            .Include(c => c.Items).ThenInclude(i => i.ProductVariant)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (cart == null || cart.Items.Count == 0)
+        {
+            logger.LogWarning("Cart is empty for user {UserId}", userId);
+
+            return (null, HttpStatusCode.BadRequest, "Cart is empty");
+        }
+
+
+        foreach (var item in cart.Items)
+        {
+            if (!item.Product.IsActive)
+            {
+                logger.LogWarning("Product {ProductId} is inactive", item.ProductId);
+
+                return (null, HttpStatusCode.BadRequest, $"Маҳсулоти '{item.Product.Name}' дигар дастрас нест");
+            }
+
+            var availableStock = item.ProductVariant?.StockQuantity ?? item.Product.StockQuantity;
+
+            if (item.Quantity > availableStock)
+            {
+                logger.LogWarning("Not enough stock for product {ProductId}", item.ProductId);
+
+                return (null, HttpStatusCode.BadRequest,
+                    $"Барои '{item.Product.Name}' танҳо {availableStock} дона дар анбор мондааст");
+            }
+        }
+
+
+        var subTotal = cart.Items.Sum(i => UnitPrice(i) * i.Quantity);
+
+        decimal discountAmount = 0;
+        int? appliedCouponId = null;
+
+        if (!string.IsNullOrWhiteSpace(couponCode))
+        {
+            var validation = await couponService.ValidateAsync(couponCode, subTotal);
+
+            if (!validation.Success)
+            {
+                logger.LogWarning("Invalid coupon {CouponCode}", couponCode);
+
+                return (null, HttpStatusCode.BadRequest, validation.Message ?? "Купон нодуруст аст");
+            }
+
+            discountAmount = Math.Min(validation.Data!.DiscountAmount, subTotal);
+            appliedCouponId = validation.Data.CouponId;
+        }
+
+
+        var shippingCost = CalculateShippingCost(address);
+
+        var result = new PricingResult
+        {
+            Cart = cart,
+            Address = address,
+            SubTotal = subTotal,
+            DiscountAmount = discountAmount,
+            AppliedCouponId = appliedCouponId,
+            ShippingCost = shippingCost
+        };
+
+        return (result, HttpStatusCode.OK, null);
+    }
+
+    private decimal CalculateShippingCost(Address address)
+    {
+        var settings = shippingSettings.Value;
+
+        var isSameCity = string.Equals(
+            address.City?.Trim(),
+            settings.WarehouseCity?.Trim(),
+            StringComparison.OrdinalIgnoreCase);
+
+        if (isSameCity)
+        {
+            logger.LogInformation(
+                "Shipping cost: same city ({City}), flat rate {Rate}",
+                address.City, settings.SameCityFlatRate);
+
+            return settings.SameCityFlatRate;
+        }
+
+
+        if (address.Latitude.HasValue && address.Longitude.HasValue)
+        {
+            var distanceKm = DistanceKm(
+                settings.WarehouseLatitude, settings.WarehouseLongitude,
+                address.Latitude.Value, address.Longitude.Value);
+
+            var calculated = Math.Round((decimal)distanceKm * settings.PricePerKm, 2);
+            var finalCost = Math.Max(calculated, settings.MinOtherCityRate);
+
+            logger.LogInformation(
+                "Shipping cost: other city ({City}), distance {Distance} km, cost {Cost}",
+                address.City, distanceKm, finalCost);
+
+            return finalCost;
+        }
+
+
+        logger.LogInformation(
+            "Shipping cost: other city ({City}) without coordinates, fallback rate {Rate}",
+            address.City, settings.MinOtherCityRate);
+
+        return settings.MinOtherCityRate;
+    }
+
+    private async Task ReleaseCourierIfAssignedAsync(Order order)
+    {
+        if (!order.CourierId.HasValue)
+            return;
+
+        var courier = await context.Couriers
+            .Include(c => c.User)
+            .FirstOrDefaultAsync(c => c.Id == order.CourierId.Value);
+
+        if (courier == null || courier.Status == CourierStatus.Offline)
+            return;
+
+        courier.Status = CourierStatus.Available;
+
+        logger.LogInformation(
+            "Courier {CourierId} released back to Available after order {OrderId} reached a terminal status",
+            courier.Id, order.Id);
+
+        await BroadcastCourierUpdateAsync(courier);
+    }
+
+    private async Task BroadcastCourierUpdateAsync(Courier courier)
+    {
+        var payload = new CourierLiveUpdateDto(
+            courier.Id,
+            courier.User?.FullName ?? string.Empty,
+            courier.Latitude,
+            courier.Longitude,
+            courier.Status.ToString());
+
+        await hubContext.Clients.All.SendAsync("CourierUpdated", payload);
+    }
+
+    private static double DistanceKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double earthRadiusKm = 6371.0;
+
+        var dLat = ToRadians(lat2 - lat1);
+        var dLon = ToRadians(lon2 - lon1);
+
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+        return earthRadiusKm * c;
+    }
+
+    private static double ToRadians(double degrees) => degrees * Math.PI / 180;
 
 
     private static decimal UnitPrice(
@@ -698,7 +1014,9 @@ public class OrderService(
             o.ShippingAddress.City,
             o.ShippingAddress.Street,
             o.ShippingAddress.PostalCode,
-            o.ShippingAddress.IsDefault),
+            o.ShippingAddress.IsDefault,
+            o.ShippingAddress.Latitude,     // <-- нав
+            o.ShippingAddress.Longitude),
 
         o.OrderItems.Select(oi => new OrderItemDto(
             oi.ProductId,
@@ -715,6 +1033,16 @@ public class OrderService(
                 o.Payment.Amount,
                 o.Payment.Method,
                 o.Payment.Status,
-                o.Payment.PaidAt)
+                o.Payment.PaidAt),
+
+        o.Courier == null
+            ? null
+            : new CourierInfoDto(
+                o.Courier.Id,
+                o.Courier.User.FullName,
+                o.Courier.User.PhoneNumber,
+                o.Courier.Status),
+
+        o.CustomerConfirmedAt
     );
 }
