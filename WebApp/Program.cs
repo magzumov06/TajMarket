@@ -86,11 +86,6 @@ builder.Host.UseSerilog();
 builder.Services.AddHttpContextAccessor();
 
 
-
-
-
-
-
 builder.Services.AddAuthorization(opt => 
 { 
     opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
@@ -98,10 +93,9 @@ builder.Services.AddAuthorization(opt =>
     opt.AddPolicy("CourierOnly", p => p.RequireRole("Courier" , "Admin"));  
 });
 
-builder.Services.AddSignalR();                      // <-- нав
+builder.Services.AddSignalR();                     
 builder.Services.AddControllers();
 
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -119,7 +113,6 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseHttpsRedirection();
-    app.MapControllers();
     app.MapControllers();
     app.MapHub<Infrastructure.Realtime.CourierHub>("/hubs/couriers");  
     app.UseHangfireDashboard("/hangfire");
