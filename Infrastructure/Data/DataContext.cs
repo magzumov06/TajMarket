@@ -1,4 +1,6 @@
-﻿using Domain.Entities;
+﻿// Infrastructure/Data/DataContext.cs
+using Application.Common.Interfaces;
+using Domain.Entities;
 using Domain.Entities.AddressEntity;
 using Domain.Entities.CartEntity;
 using Domain.Entities.CategoryEntity;
@@ -7,16 +9,15 @@ using Domain.Entities.PaymentEntity;
 using Domain.Entities.ProductEntity;
 using Domain.Entities.ReviewEntity;
 using Domain.Entities.UserEntity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
-public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<User, IdentityRole<int>, int>(options)
+public class DataContext(DbContextOptions<DataContext> options)
+    : DbContext(options), IApplicationDbContext   
 {
+    public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<SellerProfile> SellerProfiles { get; set; }
-    public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }

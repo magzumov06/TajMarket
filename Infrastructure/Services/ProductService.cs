@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Domain.DTOs.CategoryDtos;
+using Application.Features.Category.DTOs;
 using Domain.DTOs.ProductDto;
 using Domain.DTOs.ReviewDtos;
 using Domain.DTOs.SellerDto;

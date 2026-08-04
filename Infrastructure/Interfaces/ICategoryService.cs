@@ -1,4 +1,4 @@
-﻿using Domain.DTOs.CategoryDtos;
+﻿using Application.Features.Category.DTOs;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;

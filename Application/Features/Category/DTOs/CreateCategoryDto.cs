@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
+using Microsoft.AspNetCore.Http;
 
-namespace Domain.DTOs.CategoryDtos;
+namespace Application.Features.Category.DTOs;
 
 public class CreateCategoryDto
 {

@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.CategoryDtos;
+﻿namespace Application.Features.Category.DTOs;
 
 public record CategoryDto(
     int Id,

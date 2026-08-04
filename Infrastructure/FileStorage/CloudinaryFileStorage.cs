@@ -1,6 +1,6 @@
-﻿using CloudinaryDotNet;
+﻿using Application.Common.Interfaces;
+using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Domain.DTOs.FileUpload;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,7 @@ public class CloudinaryFileStorageService : IFileStorageService
         _cloudinary = new Cloudinary(account);
     }
 
-    public async Task<FileUploadResultDto> UploadImageAsync(IFormFile file, string folder)
+    public async Task<UploadedFileResult> UploadImageAsync(IFormFile file, string folder)
     {
         ValidateFile(file);
 
@@ -42,19 +42,20 @@ public class CloudinaryFileStorageService : IFileStorageService
         if (result.Error != null)
             throw new InvalidOperationException($"Хатогии боркунии Cloudinary: {result.Error.Message}");
 
-        return new FileUploadResultDto(result.SecureUrl.ToString(), result.PublicId);
+        return new UploadedFileResult(result.SecureUrl.ToString(), result.PublicId);
     }
 
-    public async Task<List<FileUploadResultDto>> UploadImagesAsync(IEnumerable<IFormFile> files, string folder)
+    public async Task<List<UploadedFileResult>> UploadImagesAsync(IEnumerable<IFormFile> files, string folder)
     {
-        var results = new List<FileUploadResultDto>();
+        var results = new List<UploadedFileResult>();
+
         foreach (var file in files)
             results.Add(await UploadImageAsync(file, folder));
 
         return results;
     }
 
-    public async Task<bool> DeleteImageAsync(string? publicId)
+    public async Task<bool> DeleteImageAsync(string publicId)
     {
         if (string.IsNullOrWhiteSpace(publicId))
             return false;

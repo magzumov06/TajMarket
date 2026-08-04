@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Domain.DTOs.CategoryDtos;
+using Application.Features.Category.DTOs;
 using Domain.Entities.CategoryEntity;
 using Domain.Responses;
 using Infrastructure.Data;
