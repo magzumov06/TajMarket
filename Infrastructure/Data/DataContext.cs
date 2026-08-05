@@ -30,7 +30,7 @@ public class DataContext(DbContextOptions<DataContext> options)
     public DbSet<Address> Addresses { get; set; } = null!;
     public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; }
-    public DbSet<Coupon> Coupons { get; set; }
+    public DbSet<Coupon> Coupons { get; set; } = null!;
     public DbSet<OtpCode> OtpCodes { get; set; }
     public DbSet<Courier> Couriers { get; set; }   
 

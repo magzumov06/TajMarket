@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.CouponDto;
+﻿using Application.Features.Coupon.DTOs;
+using Domain.DTOs.CouponDto;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;

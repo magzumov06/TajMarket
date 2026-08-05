@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.CouponDto;
+﻿namespace Application.Features.Coupon.DTOs;
 
 public record CreateCouponDto(
     string Code,

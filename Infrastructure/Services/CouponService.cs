@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Application.Features.Coupon.DTOs;
 using Domain.DTOs.CouponDto;
 using Domain.Entities;
 using Domain.Responses;
