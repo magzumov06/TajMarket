@@ -10,6 +10,7 @@ using Domain.Entities.ProductEntity;
 using Domain.Entities.ReviewEntity;
 using Domain.Entities.UserEntity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data;
 
@@ -34,6 +35,10 @@ public class DataContext(DbContextOptions<DataContext> options)
     public DbSet<OtpCode> OtpCodes { get; set; }
     public DbSet<Courier> Couriers { get; set; }   
 
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken) =>
+        Database.BeginTransactionAsync(cancellationToken);
+    
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

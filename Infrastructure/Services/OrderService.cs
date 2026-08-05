@@ -1,8 +1,10 @@
 ﻿using System.Net;
+using Application.Common.Settings;
 using Application.Features.Address.DTOs;
+using Application.Features.Order;
+using Application.Features.Order.DTOs;
 using Domain.DTOs.AddressDtos;
 using Domain.DTOs.CourierDto;
-using Domain.DTOs.OrderDto;
 using Domain.DTOs.PaymentDtos;
 using Domain.Entities.AddressEntity;
 using Domain.Entities.OrderEntity;

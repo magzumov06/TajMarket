@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.OrderDto;
+﻿namespace Application.Features.Order.DTOs;
 
 public record OrderPreviewDto(
     List<OrderPreviewItemDto> Items,

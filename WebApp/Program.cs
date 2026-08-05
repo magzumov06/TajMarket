@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Application.Common.Settings;
 using Domain.Entities.UserEntity;
 using Hangfire;
 using Hangfire.PostgreSql;

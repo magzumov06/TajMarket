@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.OrderDto;
+﻿namespace Application.Features.Order.DTOs;
 
 public record OrderPreviewItemDto(
     int ProductId,

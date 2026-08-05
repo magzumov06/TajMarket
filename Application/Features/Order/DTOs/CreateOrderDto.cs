@@ -1,6 +1,6 @@
 ﻿using Domain.Enums;
 
-namespace Domain.DTOs.OrderDto;
+namespace Application.Features.Order.DTOs;
 
 public record CreateOrderDto(
     int ShippingAddressId,

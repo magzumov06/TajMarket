@@ -15,6 +15,7 @@
   <ItemGroup>
     <Folder Include="DTOs\AddressDtos\" />
     <Folder Include="DTOs\CouponDto\" />
+    <Folder Include="DTOs\OrderDto\" />
     <Folder Include="DTOs\WishlistDto\" />
   </ItemGroup>
 

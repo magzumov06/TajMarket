@@ -1,7 +1,8 @@
-﻿using Domain.DTOs.AddressDtos;
+﻿using Application.Features.Address.DTOs;
 using Domain.DTOs.PaymentDtos;
 using Domain.Enums;
-namespace Domain.DTOs.OrderDto;
+
+namespace Application.Features.Order.DTOs;
 
 public record OrderDetailDto(
     int Id,

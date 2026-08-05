@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Domain.DTOs.OrderDto;
+using Application.Features.Order.DTOs;
 using Domain.DTOs.PaymentDtos;
 using Domain.Entities.PaymentEntity;
 using Domain.Enums;
