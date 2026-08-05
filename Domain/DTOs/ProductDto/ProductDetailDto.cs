@@ -1,4 +1,4 @@
-﻿using Domain.DTOs.CategoryDtos;
+﻿
 using Domain.DTOs.ReviewDtos;
 using Domain.DTOs.SellerDto;
 
@@ -18,3 +18,4 @@ public record ProductDetailDto(
     decimal AverageRating,
     List<ReviewDto> Reviews
 );
+

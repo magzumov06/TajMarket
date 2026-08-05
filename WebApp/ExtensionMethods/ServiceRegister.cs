@@ -17,8 +17,9 @@ public static class ServiceRegister
             cfg.RegisterServicesFromAssembly(typeof(IApplicationDbContext).Assembly));
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<DataContext>());
-        services.AddScoped<IFileStorageService, FileStorageService>();
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
+        
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<ICouponService, CouponService>();
         services.AddScoped<INotificationService, NotificationService>();
@@ -31,7 +32,6 @@ public static class ServiceRegister
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ISellerService, SellerService>();
-        services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();

@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.AddressDtos;
+﻿namespace Application.Features.Address.DTOs;
 
 public record AddressDto(
     int Id,

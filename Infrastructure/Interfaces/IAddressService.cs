@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.AddressDtos;
+﻿using Application.Features.Address.DTOs;
+using Domain.DTOs.AddressDtos;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
