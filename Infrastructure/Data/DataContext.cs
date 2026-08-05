@@ -18,7 +18,7 @@ public class DataContext(DbContextOptions<DataContext> options)
 {
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<SellerProfile> SellerProfiles { get; set; }
-    public DbSet<Product> Products { get; set; }
+    public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }
     public DbSet<Cart> Carts { get; set; }
@@ -27,8 +27,8 @@ public class DataContext(DbContextOptions<DataContext> options)
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<Review> Reviews { get; set; }
-    public DbSet<Address> Addresses { get; set; } = null!; 
-    public DbSet<WishlistItem> WishlistItems { get; set; }
+    public DbSet<Address> Addresses { get; set; } = null!;
+    public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<OtpCode> OtpCodes { get; set; }

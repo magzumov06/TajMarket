@@ -1,4 +1,4 @@
-﻿using Domain.DTOs.WishlistDto;
+﻿using Application.Features.Wishlist.DTOs;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;

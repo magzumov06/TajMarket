@@ -27,7 +27,6 @@ public static class ServiceRegister
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IReviewService, ReviewService>();
-        services.AddScoped<IWishlistService, WishlistService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
@@ -37,5 +36,4 @@ public static class ServiceRegister
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
         services.AddScoped<ICourierService, CourierService>();  
     }
-    
 }

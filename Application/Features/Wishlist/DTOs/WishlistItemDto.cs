@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.WishlistDto;
+﻿namespace Application.Features.Wishlist.DTOs;
 
 public record WishlistItemDto(
     int Id,

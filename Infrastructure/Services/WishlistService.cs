@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Domain.DTOs.WishlistDto;
+using Application.Features.Wishlist.DTOs;
 using Domain.Entities;
 using Domain.Responses;
 using Infrastructure.Data;
