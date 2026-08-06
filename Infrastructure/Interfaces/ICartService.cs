@@ -1,4 +1,4 @@
-﻿using Domain.DTOs.CartDto;
+﻿using Application.Features.Cart.DTOs;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;

@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.CartDto;
+﻿namespace Application.Features.Cart.DTOs;
 public record AddToCartDto
 {
     public int ProductId { get; init; }

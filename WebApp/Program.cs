@@ -29,8 +29,8 @@ Log.Logger = new LoggerConfiguration()
 builder.Services.Configure<CloudinarySetting>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
-builder.Services.Configure<ShippingSetting>(               
-    builder.Configuration.GetSection("ShippingSettings"));
+builder.Services.Configure<Application.Common.Settings.ShippingSetting>(
+    builder.Configuration.GetSection("Shipping"));
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 

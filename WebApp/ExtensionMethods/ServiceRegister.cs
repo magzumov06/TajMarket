@@ -4,6 +4,7 @@ using Infrastructure.Background;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
+using Infrastructure.Realtime;
 using Infrastructure.Services;
 
 namespace WebApp.ExtensionMethods;
@@ -20,9 +21,7 @@ public static class ServiceRegister
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
         
-        services.AddScoped<ICartService, CartService>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IReviewService, ReviewService>();
@@ -34,5 +33,7 @@ public static class ServiceRegister
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
         services.AddScoped<ICourierService, CourierService>();  
+        
+        services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
     }
 }

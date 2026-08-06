@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.CartDto;
+﻿namespace Application.Features.Cart.DTOs;
 
 public record CartItemDto(
     int Id,

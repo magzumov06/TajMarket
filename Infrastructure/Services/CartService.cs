@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Domain.DTOs.CartDto;
+using Application.Features.Cart.DTOs;
 using Domain.Entities.CartEntity;
 using Domain.Responses;
 using Infrastructure.Data;
@@ -292,7 +292,7 @@ public class CartService(
                     + (ci.ProductVariant?.ExtraPrice ?? 0);
 
 
-                return new Domain.DTOs.CartDto.CartItemDto(
+                return new CartItemDto(
                     ci.Id,
                     ci.ProductId,
                     ci.Product.Name,
