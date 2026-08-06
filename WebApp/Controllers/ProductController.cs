@@ -1,3 +1,5 @@
+using Application.Features.Product;
+using Application.Features.Product.DTOs;
 using Domain.DTOs.ProductDto;
 using Domain.Filters;
 using Infrastructure.Interfaces;

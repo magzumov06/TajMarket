@@ -3,6 +3,7 @@ using Application.Common.Settings;
 using Application.Features.Address.DTOs;
 using Application.Features.Order;
 using Application.Features.Order.DTOs;
+using Application.Features.Payment.DTOs;
 using Domain.DTOs.CourierDto;
 using Domain.DTOs.PaymentDtos;
 using Domain.Entities.AddressEntity;

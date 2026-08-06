@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.ProductDto;
+﻿namespace Application.Features.Product.DTOs;
 
 public record ProductVariantDto(int Id,
     string Name,

@@ -1,8 +1,10 @@
-﻿
+﻿using Application.Features.Category.DTOs;
+using Application.Features.Review.DTOs;
+using Application.Features.Seller.DTOs;
 using Domain.DTOs.ReviewDtos;
 using Domain.DTOs.SellerDto;
 
-namespace Domain.DTOs.ProductDto;
+namespace Application.Features.Product.DTOs;
 
 public record ProductDetailDto(
     int Id,

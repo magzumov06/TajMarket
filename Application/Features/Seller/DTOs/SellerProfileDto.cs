@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.SellerDto;
+﻿namespace Application.Features.Seller.DTOs;
 
 public record SellerProfileDto(
     int Id,

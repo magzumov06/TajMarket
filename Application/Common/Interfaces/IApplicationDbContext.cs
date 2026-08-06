@@ -6,6 +6,7 @@ using Domain.Entities.CategoryEntity;
 using Domain.Entities.OrderEntity;
 using Domain.Entities.PaymentEntity;
 using Domain.Entities.ProductEntity;
+using Domain.Entities.ReviewEntity;
 using Domain.Entities.UserEntity;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -26,7 +27,10 @@ public interface IApplicationDbContext
     DbSet<Courier> Couriers { get; }
     DbSet<SellerProfile> SellerProfiles { get; }
     DbSet<Notification> Notifications { get; }
-
+    DbSet<ProductImage> ProductImages { get; }   
+    DbSet<Review> Reviews { get; } 
+    
+    
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken);
 

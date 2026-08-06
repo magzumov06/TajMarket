@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Application.Features.Seller.DTOs;
 using Domain.DTOs.SellerDto;
 using Domain.Entities;
 using Domain.Entities.UserEntity;

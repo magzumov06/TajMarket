@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.SellerDto;
+﻿using Application.Features.Seller.DTOs;
+using Domain.DTOs.SellerDto;
 using Domain.Responses;
 using Microsoft.AspNetCore.Http;
 

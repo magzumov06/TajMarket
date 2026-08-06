@@ -1,4 +1,6 @@
-﻿using Domain.DTOs.ProductDto;
+﻿using Application.Features.Product;
+using Application.Features.Product.DTOs;
+using Domain.DTOs.ProductDto;
 using Domain.Filters;
 using Domain.Responses;
 using Microsoft.AspNetCore.Http;

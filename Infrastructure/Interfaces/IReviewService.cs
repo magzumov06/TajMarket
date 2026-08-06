@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.ReviewDtos;
+﻿using Application.Features.Review.DTOs;
+using Domain.DTOs.ReviewDtos;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;

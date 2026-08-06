@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.ProductDto;
+﻿namespace Application.Features.Product.DTOs;
 
 public record ProductListDto(
     int Id,

@@ -1,4 +1,6 @@
-﻿namespace Domain.Filters;
+﻿using Domain.Filters;
+
+namespace Application.Features.Product;
 
 public class ProductFilter : BaseFilter
 {
