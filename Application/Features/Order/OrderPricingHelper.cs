@@ -11,7 +11,7 @@ namespace Application.Features.Order;
 internal class PricingResult
 {
     public required Domain.Entities.CartEntity.Cart Cart { get; init; }
-    public required Domain.Entities.AddressEntity.Address Address { get; init; }   // ← номи пурра
+    public required Domain.Entities.AddressEntity.Address Address { get; init; }  
     public required decimal SubTotal { get; init; }
     public required decimal DiscountAmount { get; init; }
     public int? AppliedCouponId { get; init; }
@@ -104,7 +104,7 @@ internal static class OrderPricingHelper
     }
 
     private static decimal CalculateShippingCost(
-        Domain.Entities.AddressEntity.Address address,   // ← номи пурра
+        Domain.Entities.AddressEntity.Address address,  
         ShippingSetting settings,
         ILogger logger)
     {

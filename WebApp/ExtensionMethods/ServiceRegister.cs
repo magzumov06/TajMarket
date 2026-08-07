@@ -23,7 +23,6 @@ public static class ServiceRegister
         
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
