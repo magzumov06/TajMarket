@@ -39,8 +39,7 @@ public class GetProductDetailQueryHandler(
                 logger.LogWarning("Product not found {ProductId}", productId);
                 return new Response<ProductDetailDto>(HttpStatusCode.NotFound, "Product not found");
             }
-
-            // ← БАГ ИСЛОҲ ШУД: пеш аз ин "0" сахт-рамзгузорӣ буд
+            
             var totalSellerProducts = await context.Products
                 .CountAsync(p => p.SellerProfileId == product.SellerProfileId && p.IsActive, cancellationToken);
 
@@ -72,7 +71,7 @@ public class GetProductDetailQueryHandler(
                     product.SellerProfile.StoreLogoUrl,
                     product.SellerProfile.IsVerified,
                     product.SellerProfile.Rating,
-                    totalSellerProducts),   // ← ислоҳшуда
+                    totalSellerProducts),   
 
                 product.Reviews.Count != 0
                     ? decimal.Round(product.Reviews.Average(r => (decimal)r.Rating), 1)

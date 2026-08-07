@@ -5,6 +5,8 @@ namespace WebApp.CustomSink;
 
 public class ServiceFileSink(string folder) : ILogEventSink
 {
+    private readonly object _lock = new();
+
     public void Emit(LogEvent logEvent)
     {
         var serviceName = "General";
@@ -20,21 +22,24 @@ public class ServiceFileSink(string folder) : ILogEventSink
 
         var directory = Path.Combine(folder, serviceName);
 
-        if (!Directory.Exists(directory))
-            Directory.CreateDirectory(directory);
+        lock (_lock)
+        {
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
 
 
-        var filePath = Path.Combine(
-            directory,
-            $"log-{DateTime.Now:yyyy-MM-dd}.txt");
+            var filePath = Path.Combine(
+                directory,
+                $"log-{DateTime.Now:yyyy-MM-dd}.txt");
 
 
-        var message = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} " +
-                      $"{logEvent.Level} " +
-                      $"{logEvent.RenderMessage()}" +
-                      Environment.NewLine;
+            var message = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} " +
+                          $"{logEvent.Level} " +
+                          $"{logEvent.RenderMessage()}" +
+                          Environment.NewLine;
 
 
-        File.AppendAllText(filePath, message);
+            File.AppendAllText(filePath, message);
+        }
     }
 }
