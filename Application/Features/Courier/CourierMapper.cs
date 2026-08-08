@@ -4,7 +4,7 @@ namespace Application.Features.Courier;
 
 internal static class CourierMapper
 {
-    public static CourierDto ToDto(Domain.Entities.CourierEntity.Courier c, Domain.Entities.UserEntity.User user) => new(
+    public static CourierDto ToDto(Domain.Entities.UserEntity.Courier c, Domain.Entities.UserEntity.User user) => new(
         c.Id, c.UserId, user.FullName, user.PhoneNumber,
         c.Status, c.VehicleType, c.Latitude, c.Longitude, c.LastLocationUpdate, c.CreatedAt);
 
