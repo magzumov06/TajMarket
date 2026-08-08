@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Domain.DTOs.NotificationDto;
+using Application.Features.Notification.DTOs;
 using Domain.Entities;
 using Domain.Responses;
 using Infrastructure.Data;

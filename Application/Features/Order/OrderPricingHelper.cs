@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Application.Common.Interfaces;
 using Application.Common.Settings;
+using Application.Common.Utils;
 using Application.Features.Coupon.Queries.ValidateCoupon;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -121,7 +122,7 @@ internal static class OrderPricingHelper
 
         if (address.Latitude.HasValue && address.Longitude.HasValue)
         {
-            var distanceKm = DistanceKm(
+            var distanceKm = GeoHelper.DistanceKm(
                 settings.WarehouseLatitude, settings.WarehouseLongitude,
                 address.Latitude.Value, address.Longitude.Value);
 
@@ -135,25 +136,7 @@ internal static class OrderPricingHelper
         logger.LogInformation("Shipping cost: other city ({City}) without coordinates, fallback rate {Rate}", address.City, settings.MinOtherCityRate);
         return settings.MinOtherCityRate;
     }
-
-    private static double DistanceKm(double lat1, double lon1, double lat2, double lon2)
-    {
-        const double earthRadiusKm = 6371.0;
-
-        var dLat = ToRadians(lat2 - lat1);
-        var dLon = ToRadians(lon2 - lon1);
-
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-
-        return earthRadiusKm * c;
-    }
-
-    private static double ToRadians(double degrees) => degrees * Math.PI / 180;
-
+    
     public static decimal UnitPrice(Domain.Entities.CartEntity.CartItem item) =>
         (item.Product.DiscountPrice ?? item.Product.Price)
         + (item.ProductVariant?.ExtraPrice ?? 0);

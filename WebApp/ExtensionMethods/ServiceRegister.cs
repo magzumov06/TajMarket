@@ -3,6 +3,7 @@ using Infrastructure.Auth;
 using Infrastructure.Background;
 using Infrastructure.Data;
 using Infrastructure.FileStorage;
+using Infrastructure.Identity;
 using Infrastructure.Interfaces;
 using Infrastructure.Realtime;
 using Infrastructure.Services;
@@ -20,18 +21,14 @@ public static class ServiceRegister
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<DataContext>());
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
-        
-        services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ISellerService, SellerService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
         services.AddScoped<ICourierService, CourierService>();  
+        services.AddScoped<IStripePaymentService, StripePaymentService>();
         
         services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
     }

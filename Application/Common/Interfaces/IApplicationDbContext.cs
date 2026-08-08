@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     DbSet<Category> Categories { get; }
     DbSet<Address> Addresses { get; }
     DbSet<Order> Orders { get; }
+    DbSet<OrderItem> OrderItems { get; }
     DbSet<Product> Products { get; }              
     DbSet<WishlistItem> WishlistItems { get; }
     DbSet<Coupon> Coupons { get; }   
@@ -29,7 +30,7 @@ public interface IApplicationDbContext
     DbSet<Notification> Notifications { get; }
     DbSet<ProductImage> ProductImages { get; }   
     DbSet<Review> Reviews { get; } 
-    
+    DbSet<User> Users { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken);

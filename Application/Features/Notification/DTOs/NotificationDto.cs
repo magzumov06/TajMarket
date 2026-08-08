@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.NotificationDto;
+﻿namespace Application.Features.Notification.DTOs;
 
 public record NotificationDto(
     int Id, 

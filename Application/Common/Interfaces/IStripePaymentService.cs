@@ -1,6 +1,6 @@
 using Domain.Responses;
 
-namespace Infrastructure.Interfaces;
+namespace Application.Common.Interfaces;
 
 public interface IStripePaymentService
 {
@@ -27,9 +27,9 @@ public interface IStripePaymentService
 
 public class StripePaymentIntentResponse
 {
-    public string Id { get; set; }
-    public string ClientSecret { get; set; }
+    public string Id { get; set; } = null!;
+    public string ClientSecret { get; set; } = null!;
     public decimal Amount { get; set; }
-    public string Status { get; set; }
+    public string Status { get; set; } = null!;
     public string? LastPaymentError { get; set; }
 }

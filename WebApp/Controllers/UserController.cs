@@ -1,34 +1,37 @@
-﻿using Domain.DTOs.UserDto;
-using Infrastructure.Interfaces;
+﻿using Application.Features.User.Commands.UpdateProfile;
+using Application.Features.User.Commands.UploadAvatar;
+using Application.Features.User.Queries.GetMyProfile;
+using Domain.DTOs.UserDto;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApp.Controllers;
 
 [Authorize]
-public class UsersController(IUserService userService) : BaseApiController
+public class UsersController(IMediator mediator) : BaseApiController
 {
-    [HttpGet("me")]
-    public async Task<IActionResult> GetProfile()
-    {
-        var result = await userService.GetProfileAsync(UserId);
-        return StatusCode(result.StatusCode, result);
-    }
-
-    [HttpPut("me")]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserDto dto)
-    {
-        var result = await userService.UpdateProfileAsync(UserId, dto);
-        return StatusCode(result.StatusCode, result);
-    }
-
     [HttpPost("me/avatar")]
     public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarDto dto)
     {
         if (dto.File == null)
             return BadRequest(new { message = "Файл интихоб нашудааст" });
 
-        var result = await userService.UploadAvatarAsync(UserId, dto.File);
-        return StatusCode(result.StatusCode, result);
+        var result = await mediator.Send(new UploadAvatarCommand(UserId, dto.File));
+        return StatusCode((int)result.StatusCode, result);
+    }
+    
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserDto dto)
+    {
+        var result = await mediator.Send(new UpdateProfileCommand(UserId, dto));
+        return StatusCode((int)result.StatusCode, result);
+    }
+    
+    [HttpGet("me")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var result = await mediator.Send(new GetMyProfileQuery(UserId));
+        return StatusCode((int)result.StatusCode, result);
     }
 }

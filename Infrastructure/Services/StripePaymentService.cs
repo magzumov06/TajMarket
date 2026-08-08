@@ -1,4 +1,5 @@
 using System.Net;
+using Application.Common.Interfaces;
 using Domain.Responses;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;

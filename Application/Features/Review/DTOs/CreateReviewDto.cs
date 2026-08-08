@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.ReviewDtos;
+﻿namespace Application.Features.Review.DTOs;
 
 public record CreateReviewDto(
     int ProductId, 

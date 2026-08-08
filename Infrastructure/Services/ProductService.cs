@@ -5,7 +5,6 @@ using Application.Features.Product.DTOs;
 using Application.Features.Review.DTOs;
 using Application.Features.Seller.DTOs;
 using Domain.DTOs.ProductDto;
-using Domain.DTOs.ReviewDtos;
 using Domain.DTOs.SellerDto;
 using Domain.Entities.ProductEntity;
 using Domain.Filters;

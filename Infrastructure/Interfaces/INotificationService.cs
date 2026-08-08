@@ -1,4 +1,4 @@
-﻿using Domain.DTOs.NotificationDto;
+﻿using Application.Features.Notification.DTOs;
 using Domain.Responses;
 
 namespace Infrastructure.Interfaces;
