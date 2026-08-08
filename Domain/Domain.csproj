@@ -12,14 +12,4 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\AddressDtos\" />
-    <Folder Include="DTOs\CartDto\" />
-    <Folder Include="DTOs\CouponDto\" />
-    <Folder Include="DTOs\NotificationDto\" />
-    <Folder Include="DTOs\OrderDto\" />
-    <Folder Include="DTOs\ReviewDtos\" />
-    <Folder Include="DTOs\WishlistDto\" />
-  </ItemGroup>
-
 </Project>
