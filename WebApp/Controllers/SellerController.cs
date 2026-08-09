@@ -1,5 +1,6 @@
 ﻿using Application.Features.Seller.Commands.BecomeSeller;
 using Application.Features.Seller.Commands.UploadSellerLogo;
+using Application.Features.Seller.DTOs;
 using Application.Features.Seller.Queries.GetMySellerProfile;
 using Application.Features.Seller.Queries.GetSellerById;
 using Domain.DTOs.SellerDto;

@@ -1,6 +1,4 @@
-﻿using Application.Features.Product.Dtos;
-using Application.Features.Product.DTOs;
-using Domain.DTOs.ProductDto;
+﻿using Application.Features.Product.DTOs;
 using Domain.Responses;
 using MediatR;
 

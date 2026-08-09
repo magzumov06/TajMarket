@@ -64,8 +64,9 @@ public class BecomeSellerCommandHandler(
 
             if (!await identityService.IsInRoleAsync(userId, SellerRole, cancellationToken))
             {
-                await identityService.AddToRoleAsync(userId, SellerRole, cancellationToken);
-                logger.LogInformation("Seller role added to user {UserId}", userId);
+                var (succeeded, _) = await identityService.AddToRoleAsync(userId, SellerRole, cancellationToken);
+                if (succeeded)
+                    logger.LogInformation("Seller role added to user {UserId}", userId);
             }
 
             logger.LogInformation("User {UserId} successfully became seller with profile {SellerProfileId}", userId, profile.Id);

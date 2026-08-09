@@ -1,5 +1,6 @@
 ﻿using System.Net;
-using Domain.DTOs.AuthDto;
+using Application.Common.Interfaces;
+using Application.Features.Auth.DTOs;
 using Domain.Entities;
 using Domain.Entities.UserEntity;
 using Domain.Responses;

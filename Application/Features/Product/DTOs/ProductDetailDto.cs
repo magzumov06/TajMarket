@@ -1,7 +1,6 @@
 ﻿using Application.Features.Category.DTOs;
 using Application.Features.Review.DTOs;
 using Application.Features.Seller.DTOs;
-using Domain.DTOs.SellerDto;
 
 namespace Application.Features.Product.DTOs;
 

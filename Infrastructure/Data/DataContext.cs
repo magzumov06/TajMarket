@@ -1,5 +1,4 @@
-﻿// Infrastructure/Data/DataContext.cs
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Entities.AddressEntity;
 using Domain.Entities.CartEntity;
@@ -9,13 +8,17 @@ using Domain.Entities.PaymentEntity;
 using Domain.Entities.ProductEntity;
 using Domain.Entities.ReviewEntity;
 using Domain.Entities.UserEntity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data;
 
-public class DataContext(DbContextOptions<DataContext> options)
-    : DbContext(options), IApplicationDbContext   
+public class DataContext(
+    DbContextOptions<DataContext> options)
+    : IdentityDbContext<User, IdentityRole<int>, int>(options),
+        IApplicationDbContext
 {
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<SellerProfile> SellerProfiles { get; set; }
@@ -28,6 +31,7 @@ public class DataContext(DbContextOptions<DataContext> options)
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<Review> Reviews { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<Address> Addresses { get; set; } = null!;
     public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; }

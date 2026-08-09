@@ -75,7 +75,7 @@ public class CreateOrderCommandHandler(
                     item.Product.StockQuantity -= item.Quantity;
             }
 
-            context.Payments.Add(new Payment
+            context.Payments.Add(new Domain.Entities.PaymentEntity.Payment
             {
                 Order = order,
                 Amount = pricing.TotalAmount,

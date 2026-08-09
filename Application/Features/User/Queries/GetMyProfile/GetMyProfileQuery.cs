@@ -1,4 +1,4 @@
-﻿using Domain.DTOs.UserDto;
+﻿using Application.Features.User.DTOs;
 using Domain.Responses;
 using MediatR;
 

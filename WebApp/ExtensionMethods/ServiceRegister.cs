@@ -22,12 +22,10 @@ public static class ServiceRegister
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
         services.AddScoped<IIdentityService, IdentityService>();
-        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
-        services.AddScoped<ICourierService, CourierService>();  
         services.AddScoped<IStripePaymentService, StripePaymentService>();
         
         services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();

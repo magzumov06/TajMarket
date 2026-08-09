@@ -1,5 +1,6 @@
 ﻿using System.Net;
-using Domain.DTOs.AuthDto;
+using Application.Common.Interfaces;
+using Application.Features.Auth.DTOs;
 using Domain.Entities.UserEntity;
 using Domain.Responses;
 using Microsoft.AspNetCore.Identity;
@@ -246,7 +247,7 @@ public class AuthService(
 
 
     public async Task<Response<string>> ChangePassword(
-        ChangePassword changePassword,
+        ChangePasswordDto changePasswordDto,
         int userId)
     {
         try
@@ -272,8 +273,8 @@ public class AuthService(
             var result =
                 await userManager.ChangePasswordAsync(
                     user,
-                    changePassword.OldPassword,
-                    changePassword.Password);
+                    changePasswordDto.OldPassword,
+                    changePasswordDto.Password);
 
 
             if (!result.Succeeded)

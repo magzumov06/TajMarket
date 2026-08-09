@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.UserDto;
+﻿namespace Application.Features.User.DTOs;
 
 public record UserProfileDto(
     int Id,

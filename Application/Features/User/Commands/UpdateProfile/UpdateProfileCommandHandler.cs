@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using Application.Common.Interfaces;
-using Domain.DTOs.UserDto;
+using Application.Features.User.DTOs;
 using Domain.Responses;
 using MediatR;
 using Microsoft.Extensions.Logging;

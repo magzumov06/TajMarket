@@ -18,20 +18,20 @@ public class CouponController(IMediator mediator) : BaseApiController
         var res = await mediator.Send(new CreateCouponCommand(dto));
         return StatusCode((int)res.StatusCode, res);
     }
+    
+    [HttpPost("validate")]
+    [Authorize]
+    public async Task<IActionResult> ValidateCoupon([FromBody] ValidateCouponRequest request)
+    {
+        var res = await mediator.Send(new ValidateCouponQuery(request.Code, request.OrderAmount));
+        return StatusCode((int)res.StatusCode, res);
+    }
 
     [HttpPut("{code}/deactivate")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeactivateCoupon(string code)
     {
         var res = await mediator.Send(new DeactivateCouponCommand(code));
-        return StatusCode((int)res.StatusCode, res);
-    }
-
-    [HttpPost("validate")]
-    [Authorize]
-    public async Task<IActionResult> ValidateCoupon([FromBody] ValidateCouponRequest request)
-    {
-        var res = await mediator.Send(new ValidateCouponQuery(request.Code, request.OrderAmount));
         return StatusCode((int)res.StatusCode, res);
     }
 

@@ -1,7 +1,7 @@
 ﻿using Application.Features.User.Commands.UpdateProfile;
 using Application.Features.User.Commands.UploadAvatar;
+using Application.Features.User.DTOs;
 using Application.Features.User.Queries.GetMyProfile;
-using Domain.DTOs.UserDto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

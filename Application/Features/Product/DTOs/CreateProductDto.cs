@@ -1,6 +1,4 @@
-﻿using Domain.DTOs.ProductDto;
-
-namespace Application.Features.Product.DTOs;
+﻿namespace Application.Features.Product.DTOs;
 
 public record CreateProductDto(
     string Name,

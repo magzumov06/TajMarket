@@ -54,10 +54,11 @@ public class CreateCourierCommandHandler(
 
             if (!await identityService.IsInRoleAsync(dto.UserId, CourierRole, cancellationToken))
             {
-                await identityService.AddToRoleAsync(dto.UserId, CourierRole, cancellationToken);
-                logger.LogInformation("Courier role added to user {UserId}", dto.UserId);
+                var (succeeded, _) = await identityService.AddToRoleAsync(dto.UserId, CourierRole, cancellationToken);
+                if (succeeded)
+                    logger.LogInformation("Courier role added to user {UserId}", dto.UserId);
             }
-
+            
             logger.LogInformation("Courier {CourierId} created for user {UserId}", courier.Id, dto.UserId);
 
             return new Response<CourierDto>(CourierMapper.ToDto(courier, user));

@@ -1,7 +1,6 @@
-// WebApp/Controllers/CategoryController.cs
 using Application.Features.Category.Commands.CreateCategory;
 using Application.Features.Category.Commands.DeleteCategory;
-using Application.Features.Category.Dtos;
+using Application.Features.Category.DTOs;
 using Application.Features.Category.Queries.GetCategoryById;
 using Application.Features.Category.Queries.GetCategoryTree;
 using MediatR;

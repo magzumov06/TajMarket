@@ -14,24 +14,17 @@ namespace WebApp.Controllers;
 [Authorize]
 public class AddressesController(IMediator mediator) : BaseApiController
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var result = await mediator.Send(new GetAllAddressesQuery(UserId));
-        return Ok(result);
-    }
-
-    [HttpGet("{addressId:int}")]
-    public async Task<IActionResult> GetById(int addressId)
-    {
-        var result = await mediator.Send(new GetAddressByIdQuery(UserId, addressId));
-        return StatusCode((int)result.StatusCode, result);
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAddressDto dto)
     {
         var result = await mediator.Send(new CreateAddressCommand(UserId, dto));
+        return StatusCode((int)result.StatusCode, result);
+    }
+    
+    [HttpPost("{addressId:int}/set-default")]
+    public async Task<IActionResult> SetDefault(int addressId)
+    {
+        var result = await mediator.Send(new SetDefaultAddressCommand(UserId, addressId));
         return StatusCode((int)result.StatusCode, result);
     }
 
@@ -48,11 +41,18 @@ public class AddressesController(IMediator mediator) : BaseApiController
         var result = await mediator.Send(new DeleteAddressCommand(UserId, addressId));
         return StatusCode((int)result.StatusCode, result);
     }
-
-    [HttpPost("{addressId:int}/set-default")]
-    public async Task<IActionResult> SetDefault(int addressId)
+    
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var result = await mediator.Send(new SetDefaultAddressCommand(UserId, addressId));
+        var result = await mediator.Send(new GetAllAddressesQuery(UserId));
+        return Ok(result);
+    }
+
+    [HttpGet("{addressId:int}")]
+    public async Task<IActionResult> GetById(int addressId)
+    {
+        var result = await mediator.Send(new GetAddressByIdQuery(UserId, addressId));
         return StatusCode((int)result.StatusCode, result);
     }
 }

@@ -33,18 +33,18 @@ public class CartController(IMediator mediator) : BaseApiController
         var res = await mediator.Send(new RemoveFromCartCommand(UserId, cartItemId));
         return StatusCode((int)res.StatusCode, res);
     }
+    
+    [HttpDelete]
+    public async Task<IActionResult> ClearCart()
+    {
+        var res = await mediator.Send(new ClearCartCommand(UserId));
+        return StatusCode((int)res.StatusCode, res);
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetCartItems()
     {
         var res = await mediator.Send(new GetCartItemsQuery(UserId));
-        return StatusCode((int)res.StatusCode, res);
-    }
-
-    [HttpDelete]
-    public async Task<IActionResult> ClearCart()
-    {
-        var res = await mediator.Send(new ClearCartCommand(UserId));
         return StatusCode((int)res.StatusCode, res);
     }
 }
