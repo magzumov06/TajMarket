@@ -8,6 +8,7 @@ using Infrastructure.Data;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -75,6 +76,20 @@ builder.Services.AddAuthentication(options => {
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
         };
+        
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    context.Token = accessToken;
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 
@@ -93,11 +108,25 @@ builder.Services.AddAuthorization(opt =>
     opt.AddPolicy("CourierOnly", p => p.RequireRole("Courier" , "Admin"));  
 });
 
-builder.Services.AddSignalR();                     
+builder.Services.AddSignalR(); 
+builder.Services.AddSingleton<IUserIdProvider, Infrastructure.Realtime.CustomUserIdProvider>();  
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRPolicy", policy =>
+    {
+        policy.WithOrigins("https://frontend.com", "http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 
 try
 {
@@ -110,11 +139,15 @@ try
         app.UseSwaggerUI();
     }
 
+    app.UseCors("SignalRPolicy"); 
+
+    
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseHttpsRedirection();
     app.MapControllers();
-    app.MapHub<Infrastructure.Realtime.CourierHub>("/hubs/couriers");  
+    app.MapHub<Infrastructure.Realtime.CourierHub>("/hubs/couriers");
+    app.MapHub<Infrastructure.Realtime.NotificationHub>("/hubs/notifications");  
     app.UseHangfireDashboard("/hangfire");
     
     using (var scope = app.Services.CreateScope())

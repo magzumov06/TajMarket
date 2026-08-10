@@ -3,6 +3,9 @@
 public interface IRealtimeNotifier
 {
     Task BroadcastCourierUpdateAsync(CourierLiveUpdatePayload payload);
+    
+    Task NotifyUserAsync(int userId, NotificationPayload notification);
+
 }
 
 public record CourierLiveUpdatePayload(
@@ -11,3 +14,10 @@ public record CourierLiveUpdatePayload(
     double? Latitude,
     double? Longitude,
     string Status);
+    
+public record NotificationPayload(
+    int Id, 
+    string Title, 
+    string Message,
+    bool IsRead,
+    DateTime CreatedAt);

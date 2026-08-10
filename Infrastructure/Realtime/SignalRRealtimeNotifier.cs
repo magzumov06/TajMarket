@@ -3,10 +3,17 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime;
 
-public class SignalRRealtimeNotifier(IHubContext<CourierHub> hubContext) : IRealtimeNotifier
+public class SignalRRealtimeNotifier(
+    IHubContext<CourierHub> courierHub,
+    IHubContext<NotificationHub> notificationHub) : IRealtimeNotifier
 {
     public async Task BroadcastCourierUpdateAsync(CourierLiveUpdatePayload payload)
     {
-        await hubContext.Clients.All.SendAsync("CourierUpdated", payload);
+        await courierHub.Clients.All.SendAsync("CourierUpdated", payload);
+    }
+
+    public async Task NotifyUserAsync(int userId, NotificationPayload notification)
+    {
+        await notificationHub.Clients.User(userId.ToString()).SendAsync("NotificationReceived", notification);
     }
 }
