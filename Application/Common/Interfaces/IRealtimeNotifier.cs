@@ -6,6 +6,8 @@ public interface IRealtimeNotifier
     
     Task NotifyUserAsync(int userId, NotificationPayload notification);
 
+    Task BroadcastNotificationAsync(NotificationPayload notification);
+
 }
 
 public record CourierLiveUpdatePayload(

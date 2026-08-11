@@ -16,4 +16,9 @@ public class SignalRRealtimeNotifier(
     {
         await notificationHub.Clients.User(userId.ToString()).SendAsync("NotificationReceived", notification);
     }
+    
+    public async Task BroadcastNotificationAsync(NotificationPayload notification)
+    {
+        await notificationHub.Clients.All.SendAsync("NotificationReceived", notification);
+    }
 }

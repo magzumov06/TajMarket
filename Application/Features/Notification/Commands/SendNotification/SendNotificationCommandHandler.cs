@@ -1,20 +1,31 @@
-﻿using Application.Common.Interfaces;
+﻿using System.Net;
+using Application.Common.Interfaces;
+using Domain.Responses;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Notification.Commands.SendNotification;
 
 public class SendNotificationCommandHandler(
     IApplicationDbContext context,
-    IRealtimeNotifier realtimeNotifier,   
+    IRealtimeNotifier realtimeNotifier,
     ILogger<SendNotificationCommandHandler> logger)
-    : IRequestHandler<SendNotificationCommand>
+    : IRequestHandler<SendNotificationCommand, Response<string>>
 {
-    public async Task Handle(SendNotificationCommand request, CancellationToken cancellationToken)
+    public async Task<Response<string>> Handle(SendNotificationCommand request, CancellationToken cancellationToken)
     {
         try
         {
             logger.LogInformation("Sending notification to user {UserId}: {Title}", request.UserId, request.Title);
+
+            var userExists = await context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
+
+            if (!userExists)
+            {
+                logger.LogWarning("Notification target user not found {UserId}", request.UserId);
+                return new Response<string>(HttpStatusCode.NotFound, "Корбар ёфт нашуд");
+            }
 
             var notification = new Domain.Entities.Notification
             {
@@ -28,14 +39,17 @@ public class SendNotificationCommandHandler(
             context.Notifications.Add(notification);
             await context.SaveChangesAsync(cancellationToken);
 
-            await realtimeNotifier.NotifyUserAsync(request.UserId, new NotificationPayload(
+            await realtimeNotifier.NotifyUserAsync(request.UserId, new Application.Common.Interfaces.NotificationPayload(
                 notification.Id, notification.Title, notification.Message, notification.IsRead, notification.CreatedAt));
 
             logger.LogInformation("Notification sent successfully to user {UserId}", request.UserId);
+
+            return new Response<string>(HttpStatusCode.OK, "Огоҳинома фиристода шуд");
         }
         catch (Exception e)
         {
             logger.LogError(e, "Error sending notification to user {UserId}", request.UserId);
+            return new Response<string>(HttpStatusCode.InternalServerError, "Огоҳинома фиристода нашуд");
         }
     }
 }
