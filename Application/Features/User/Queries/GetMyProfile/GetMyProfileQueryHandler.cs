@@ -1,5 +1,4 @@
-﻿// Application/Features/User/Queries/GetMyProfile/GetMyProfileQueryHandler.cs
-using System.Net;
+﻿using System.Net;
 using Application.Common.Interfaces;
 using Application.Features.User.DTOs;
 using Domain.Responses;

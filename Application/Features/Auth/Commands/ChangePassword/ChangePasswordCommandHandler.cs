@@ -28,10 +28,13 @@ public class ChangePasswordCommandHandler(
 
             if (!succeeded)
                 return new Response<string>(HttpStatusCode.BadRequest, "Your password not changed");
+            
+            user.TokenValidFrom = DateTime.UtcNow;
+            await identityService.UpdateUserAsync(user, cancellationToken);
 
             logger.LogInformation("Password changed successfully for user {UserId}", userId);
 
-            return new Response<string>(HttpStatusCode.OK, "Your password has been changed");
+            return new Response<string>(HttpStatusCode.OK, "Паролатон иваз шуд. Лутфан аз нав вуруд кунед.");
         }
         catch (Exception ex)
         {

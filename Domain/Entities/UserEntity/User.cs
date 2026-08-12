@@ -12,6 +12,7 @@ public class User : IdentityUser<int>
     public string? AvatarUrl { get; set; }
     public string? AvatarPublicId { get; set; }   
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime TokenValidFrom { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; } = true;
     public ICollection<Order> Orders { get; set; }
     public ICollection<Review> Reviews { get; set; }

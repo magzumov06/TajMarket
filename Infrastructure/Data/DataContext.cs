@@ -38,7 +38,9 @@ public class DataContext(
     public DbSet<Coupon> Coupons { get; set; } = null!;
     public DbSet<OtpCode> OtpCodes { get; set; }
     public DbSet<Courier> Couriers { get; set; }   
+    public DbSet<RevokedToken> RevokedTokens { get; set; }
 
+    
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken) =>
         Database.BeginTransactionAsync(cancellationToken);
     

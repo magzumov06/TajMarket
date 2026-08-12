@@ -8,6 +8,7 @@ using Domain.Entities.PaymentEntity;
 using Domain.Entities.ProductEntity;
 using Domain.Entities.ReviewEntity;
 using Domain.Entities.UserEntity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Application.Common.Interfaces;
@@ -31,6 +32,10 @@ public interface IApplicationDbContext
     DbSet<ProductImage> ProductImages { get; }   
     DbSet<Review> Reviews { get; } 
     DbSet<User> Users { get; }
+    DbSet<RevokedToken> RevokedTokens { get; }
+    
+    DbSet<IdentityUserRole<int>> UserRoles { get; } 
+    DbSet<IdentityRole<int>> Roles { get; } 
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken);

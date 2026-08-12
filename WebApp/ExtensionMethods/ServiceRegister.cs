@@ -27,6 +27,7 @@ public static class ServiceRegister
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUnconfirmedUserCleanupService, UnconfirmedUserCleanupService>();
         services.AddScoped<IStripePaymentService, StripePaymentService>();
+        services.AddScoped<IRevokedTokenCleanupService, RevokedTokenCleanupService>();
         
         services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
     }

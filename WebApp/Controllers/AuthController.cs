@@ -1,5 +1,6 @@
 ﻿using Application.Features.Auth.Commands.ChangePassword;
 using Application.Features.Auth.Commands.Login;
+using Application.Features.Auth.Commands.Logout;
 using Application.Features.Auth.Commands.Register;
 using Application.Features.Auth.DTOs;
 using MediatR;
@@ -26,6 +27,22 @@ public class AuthController(IMediator mediator) : BaseApiController
         return StatusCode((int)result.StatusCode, result);
     }
 
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var jti = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
+        var expClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Exp)?.Value;
+
+        if (jti == null || expClaim == null)
+            return BadRequest();
+
+        var expiresAt = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim)).UtcDateTime;
+
+        var res = await mediator.Send(new LogoutCommand(jti, expiresAt));
+        return StatusCode((int)res.StatusCode, res);
+    }
+    
     [Authorize]
     [HttpPut("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)

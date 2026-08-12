@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Domain.Entities.UserEntity;
 using Hangfire;
@@ -26,6 +27,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteToServiceFiles("Logs")
     .CreateLogger();
 
+//Settings
 builder.Services.Configure<CloudinarySetting>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
@@ -39,7 +41,6 @@ builder.Services.Configure<EmailSettings>(
 
 //DataContext
 builder.Services.AddDataContext(builder.Configuration);
-
 
 //Swagger
 builder.Services.RegisterSwagger();
@@ -62,6 +63,7 @@ builder.Services.AddHangfire(config =>
 
 builder.Services.AddHangfireServer();
 
+//JWT Authentication
 builder.Services.AddAuthentication(options => {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -76,9 +78,10 @@ builder.Services.AddAuthentication(options => {
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!))
         };
-        
+
         options.Events = new JwtBearerEvents
         {
+            //SignalR: гирифтани JWT аз query string барои дархостҳои /hubs/*
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];
@@ -88,29 +91,64 @@ builder.Services.AddAuthentication(options => {
                     context.Token = accessToken;
 
                 return Task.CompletedTask;
+            },
+
+            //Token Revocation: рад кардани token-ҳои бекоршуда (logout) ё блокшуда (Admin)
+            OnTokenValidated = async context =>
+            {
+                var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                var iatStr = context.Principal?.FindFirst(JwtRegisteredClaimNames.Iat)?.Value;
+                var userIdStr = context.Principal?.FindFirst("sub")?.Value
+                                ?? context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                ?? context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+                if (jti == null || iatStr == null || userIdStr == null)
+                {
+                    context.Fail("Invalid token");
+                    return;
+                }
+
+                var dbContext = context.HttpContext.RequestServices
+                    .GetRequiredService<Application.Common.Interfaces.IApplicationDbContext>();
+
+                var isRevoked = await dbContext.RevokedTokens.AnyAsync(rt => rt.Jti == jti);
+
+                if (isRevoked)
+                {
+                    context.Fail("Token has been revoked");
+                    return;
+                }
+
+                var iat = DateTimeOffset.FromUnixTimeSeconds(long.Parse(iatStr)).UtcDateTime;
+                var userId = int.Parse(userIdStr);
+
+                var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null || !user.IsActive || iat < user.TokenValidFrom)
+                {
+                    context.Fail("Token is no longer valid");
+                }
             }
         };
     });
 
-
-
-
 builder.Host.UseSerilog();
-
 
 builder.Services.AddHttpContextAccessor();
 
-
-builder.Services.AddAuthorization(opt => 
-{ 
+//Authorization Policies
+builder.Services.AddAuthorization(opt =>
+{
     opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
     opt.AddPolicy("SellerOnly", p => p.RequireRole("Seller", "Admin"));
-    opt.AddPolicy("CourierOnly", p => p.RequireRole("Courier" , "Admin"));  
+    opt.AddPolicy("CourierOnly", p => p.RequireRole("Courier", "Admin"));
 });
 
-builder.Services.AddSignalR(); 
-builder.Services.AddSingleton<IUserIdProvider, Infrastructure.Realtime.CustomUserIdProvider>();  
+//SignalR
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, Infrastructure.Realtime.CustomUserIdProvider>();
 
+//CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("SignalRPolicy", policy =>
@@ -122,34 +160,41 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-
 
 try
 {
     Log.Information("Starting web host");
     var app = builder.Build();
 
+    //Swagger
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
     }
 
-    app.UseCors("SignalRPolicy"); 
+    //CORS
+    app.UseCors("SignalRPolicy");
 
-    
+    //Authentication/Authorization
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseHttpsRedirection();
+
+    //Controllers
     app.MapControllers();
+
+    //SignalR Hubs
     app.MapHub<Infrastructure.Realtime.CourierHub>("/hubs/couriers");
-    app.MapHub<Infrastructure.Realtime.NotificationHub>("/hubs/notifications");  
+    app.MapHub<Infrastructure.Realtime.NotificationHub>("/hubs/notifications");
+
+    //Hangfire
     app.UseHangfireDashboard("/hangfire");
-    
+
+    //DB Migration + Seed
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
@@ -157,22 +202,29 @@ try
         {
             var userManager = services.GetRequiredService<UserManager<User>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
-            var data =  services.GetRequiredService<DataContext>();
+            var data = services.GetRequiredService<DataContext>();
             await Seed.SeedRole(roleManager);
             await Seed.SeedAdmin(userManager, roleManager);
             await data.Database.MigrateAsync();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Log.Error(ex, "Database migration/seed failed");
             throw;
         }
     }
+
+    //Background Jobs
     RecurringJob.AddOrUpdate<IUnconfirmedUserCleanupService>(
         "delete-unconfirmed-users",
         service => service.DeleteOldUnconfirmedUsersAsync(),
         Cron.Daily);
     
+    RecurringJob.AddOrUpdate<IRevokedTokenCleanupService>(
+        "cleanup-revoked-tokens",
+        service => service.DeleteExpiredTokensAsync(),
+        Cron.Daily);
+
     app.Run();
 }
 catch (Exception ex)
