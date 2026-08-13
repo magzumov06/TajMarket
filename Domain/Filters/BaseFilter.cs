@@ -2,18 +2,23 @@
 
 public class BaseFilter
 {
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
+    private int _pageNumber = 1;
+    private int _pageSize = 10;
 
-    public BaseFilter()
+    public int PageNumber
     {
-        PageNumber = 1;
-        PageSize = 10;
+        get => _pageNumber;
+        set => _pageNumber = value < 1 ? 1 : value;
     }
-    
-    public BaseFilter(int pageNumber, int pageSize)
+
+    public int PageSize
     {
-        PageNumber = pageNumber < 1 ? 1 : pageNumber;
-        PageSize = pageSize < 1 ? 10 : pageSize;
+        get => _pageSize;
+        set => _pageSize = value switch
+        {
+            < 1 => 10,
+            > 100 => 100,
+            _ => value
+        };
     }
 }

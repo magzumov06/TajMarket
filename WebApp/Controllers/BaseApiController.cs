@@ -8,20 +8,18 @@ namespace WebApp.Controllers;
 [Route("api/[controller]")]
 public class BaseApiController : ControllerBase
 {
-    protected int UserId 
+    protected int UserId
     {
-        get 
+        get
         {
-            var userIdStr = User.FindFirst("sub")?.Value 
-                            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            var userIdStr = User.FindFirst("sub")?.Value
+                            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                             ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        
+
             if (string.IsNullOrEmpty(userIdStr))
-                throw new Exception("User ID not found in token. Make sure 'sub' claim exists.");
+                throw new UnauthorizedAccessException("User ID not found in token"); // ← навъи истисно иваз шуд
 
             return int.Parse(userIdStr);
         }
     }
-
-
 }

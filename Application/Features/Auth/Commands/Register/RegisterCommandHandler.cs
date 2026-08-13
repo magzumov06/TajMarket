@@ -29,7 +29,8 @@ public class RegisterCommandHandler(
             if (existing != null)
             {
                 logger.LogWarning("Registration failed. Email already exists {Email}", dto.Email);
-                return new Response<AuthResponseDto>(HttpStatusCode.Conflict, "Корбар бо ин почтаи электронӣ аллакай сабт шудааст");
+                return new Response<AuthResponseDto>(HttpStatusCode.Conflict,
+                    "Корбар бо ин почтаи электронӣ аллакай сабт шудааст");
             }
 
             var user = new Domain.Entities.UserEntity.User
@@ -40,8 +41,9 @@ public class RegisterCommandHandler(
                 PhoneNumber = dto.PhoneNumber,
                 CreatedAt = DateTime.UtcNow
             };
-            
-            var (createSucceeded, createErrors) = await identityService.CreateUserAsync(user, dto.Password, cancellationToken);
+
+            var (createSucceeded, createErrors) =
+                await identityService.CreateUserAsync(user, dto.Password, cancellationToken);
 
             if (!createSucceeded)
             {
@@ -50,7 +52,8 @@ public class RegisterCommandHandler(
                 return new Response<AuthResponseDto>(HttpStatusCode.BadRequest, errors);
             }
 
-            var (roleSucceeded, roleErrors) = await identityService.AddToRoleAsync(user.Id, DefaultRole, cancellationToken);
+            var (roleSucceeded, roleErrors) =
+                await identityService.AddToRoleAsync(user.Id, DefaultRole, cancellationToken);
 
             if (!roleSucceeded)
             {
@@ -60,7 +63,19 @@ public class RegisterCommandHandler(
                 return new Response<AuthResponseDto>(HttpStatusCode.BadRequest, errors);
             }
 
-            await otpService.ResendOtpAsync(user.Email!);
+            try
+            {
+                await otpService.ResendOtpAsync(user.Email!);
+            }
+            catch (Exception emailEx)
+            {
+                logger.LogError(emailEx,
+                    "Failed to send OTP email during registration for {Email} — account was created successfully",
+                    user.Email);
+
+                return new Response<AuthResponseDto>(HttpStatusCode.OK,
+                    "Ҳисоб сохта шуд, вале фиристодани рамзи тасдиқ ба почта ноком шуд. Лутфан тугмаи 'Дубора фиристодан'-ро пахш кунед.");
+            }
 
             logger.LogInformation("User registered successfully {UserId}", user.Id);
 

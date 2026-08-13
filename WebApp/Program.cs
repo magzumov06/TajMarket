@@ -11,8 +11,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using WebApp.Auth;
 using WebApp.ExtensionMethods;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -32,12 +34,17 @@ builder.Services.Configure<CloudinarySetting>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.Configure<Application.Common.Settings.ShippingSetting>(
-    builder.Configuration.GetSection("Shipping"));
+    builder.Configuration.GetSection("ShippingSettings"));
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("AdminSeed"));
+
+builder.Services.Configure<HangfireDashboardSettings>(
+    builder.Configuration.GetSection("HangfireDashboard"));
 
 //DataContext
 builder.Services.AddDataContext(builder.Configuration);
@@ -192,8 +199,16 @@ try
     app.MapHub<Infrastructure.Realtime.NotificationHub>("/hubs/notifications");
 
     //Hangfire
-    app.UseHangfireDashboard("/hangfire");
+    var hangfireSettings = app.Services.GetRequiredService<IOptions<HangfireDashboardSettings>>().Value;
 
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[]
+        {
+            new HangfireBasicAuthAuthorizationFilter(hangfireSettings.Username, hangfireSettings.Password)
+        }
+    });
+    
     //DB Migration + Seed
     using (var scope = app.Services.CreateScope())
     {
@@ -204,7 +219,8 @@ try
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
             var data = services.GetRequiredService<DataContext>();
             await Seed.SeedRole(roleManager);
-            await Seed.SeedAdmin(userManager, roleManager);
+            var adminSettings = services.GetRequiredService<IOptions<AdminSeedSettings>>().Value;
+            await Seed.SeedAdmin(userManager, roleManager, adminSettings);
             await data.Database.MigrateAsync();
         }
         catch (Exception ex)

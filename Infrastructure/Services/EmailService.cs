@@ -3,6 +3,7 @@ using System.Net.Mail;
 using Infrastructure.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
 namespace Infrastructure.Services;
 
 public class EmailService(
@@ -13,49 +14,39 @@ public class EmailService(
     {
         try
         {
-            logger.LogInformation(
-                "Sending OTP email to {Email}",
-                email);
-
+            logger.LogInformation("Sending OTP email to {Email}", email);
 
             var smtpHost = configuration["EmailSettings:SmtpHost"];
-            var smtpPort = int.Parse(
-                configuration["EmailSettings:SmtpPort"]!);
-
+            var smtpPortStr = configuration["EmailSettings:SmtpPort"];
             var smtpEmail = configuration["EmailSettings:Email"];
             var smtpPassword = configuration["EmailSettings:Password"];
             var displayName = configuration["EmailSettings:DisplayName"];
 
-
             if (string.IsNullOrEmpty(smtpHost) ||
+                string.IsNullOrEmpty(smtpPortStr) ||
                 string.IsNullOrEmpty(smtpEmail) ||
                 string.IsNullOrEmpty(smtpPassword))
             {
                 logger.LogError("Email settings are missing");
-
-                throw new Exception("Email settings are not configured");
+                throw new InvalidOperationException("Email settings are not configured");
             }
 
+            if (!int.TryParse(smtpPortStr, out var smtpPort))
+            {
+                logger.LogError("Invalid SMTP port configuration: {SmtpPort}", smtpPortStr);
+                throw new InvalidOperationException("Invalid SMTP port configuration");
+            }
 
-            using var client = new SmtpClient(
-                smtpHost,
-                smtpPort)
+            using var client = new SmtpClient(smtpHost, smtpPort)
             {
                 EnableSsl = true,
-                Credentials = new NetworkCredential(
-                    smtpEmail,
-                    smtpPassword)
+                Credentials = new NetworkCredential(smtpEmail, smtpPassword)
             };
-
 
             using var mail = new MailMessage
             {
-                From = new MailAddress(
-                    smtpEmail,
-                    displayName),
-
+                From = new MailAddress(smtpEmail, displayName),
                 Subject = "TajMarket OTP Verification Code",
-
                 Body = $"""
                         Hello,
 
@@ -70,28 +61,18 @@ public class EmailService(
                         Thank you,
                         TajMarket Team
                         """,
-
                 IsBodyHtml = false
             };
 
-
             mail.To.Add(email);
-
 
             await client.SendMailAsync(mail);
 
-
-            logger.LogInformation(
-                "OTP email successfully sent to {Email}",
-                email);
+            logger.LogInformation("OTP email successfully sent to {Email}", email);
         }
         catch (Exception ex)
         {
-            logger.LogError(
-                ex,
-                "Failed to send OTP email to {Email}",
-                email);
-
+            logger.LogError(ex, "Failed to send OTP email to {Email}", email);
             throw;
         }
     }

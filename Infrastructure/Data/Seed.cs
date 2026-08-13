@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.UserEntity;
 using Domain.Enums;
+using Infrastructure.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,29 +8,32 @@ namespace Infrastructure.Data;
 
 public static class Seed
 {
-    public static async Task SeedAdmin(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
+    public static async Task SeedAdmin(
+        UserManager<User> userManager,
+        RoleManager<IdentityRole<int>> roleManager,
+        AdminSeedSettings settings) 
     {
-        if (!roleManager.RoleExistsAsync(Role.Admin.ToString()).Result)
-        {
+        if (!await roleManager.RoleExistsAsync(Role.Admin.ToString()))
             await roleManager.CreateAsync(new IdentityRole<int>("Admin"));
-        }
-        var user = userManager.Users.FirstOrDefault(x=> x.UserName == "Admin");
+
+        var user = userManager.Users.FirstOrDefault(x => x.Email == settings.Email);
+
         if (user == null)
         {
-            var newUser = new User()
+            var newUser = new User
             {
                 FullName = "Admin",
-                UserName = "Admin",
-                Email = "admin@gmail.com",
-                PhoneNumber = "987654321",
+                UserName = settings.Email,
+                Email = settings.Email,
+                PhoneNumber = settings.PhoneNumber,
                 EmailConfirmed = true,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
             };
-            var res = userManager.CreateAsync(newUser, "zxcv0987?");
-            if (res.Result.Succeeded)
-            {
+
+            var res = await userManager.CreateAsync(newUser, settings.Password);
+
+            if (res.Succeeded)
                 await userManager.AddToRoleAsync(newUser, Role.Admin.ToString());
-            }
         }
     }
 
@@ -40,16 +44,16 @@ public static class Seed
             new(Role.Admin.ToString()),
             new(Role.Customer.ToString()),
             new(Role.Seller.ToString()),
-            new (Role.Courier.ToString())
+            new(Role.Courier.ToString())
         };
         var roles = await roleManager.Roles.ToListAsync();
         foreach (var role in newRole)
         {
-            if(roles.Any(r=>r.Name == role.Name))
+            if (roles.Any(r => r.Name == role.Name))
                 continue;
             await roleManager.CreateAsync(role);
         }
+
         return true;
     }
-
 }
