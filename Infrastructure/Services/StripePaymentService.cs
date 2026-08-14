@@ -1,9 +1,9 @@
 using System.Net;
 using Application.Common.Interfaces;
+using Application.Common.Settings;
 using Domain.Responses;
 using Infrastructure.FileStorage;
 using Infrastructure.Interfaces;
-using Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;

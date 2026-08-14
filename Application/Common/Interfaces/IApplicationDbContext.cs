@@ -33,6 +33,7 @@ public interface IApplicationDbContext
     DbSet<Review> Reviews { get; } 
     DbSet<User> Users { get; }
     DbSet<RevokedToken> RevokedTokens { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
     
     DbSet<IdentityUserRole<int>> UserRoles { get; } 
     DbSet<IdentityRole<int>> Roles { get; } 

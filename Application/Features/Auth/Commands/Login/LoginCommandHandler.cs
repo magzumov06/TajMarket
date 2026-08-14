@@ -1,15 +1,19 @@
 ﻿using System.Net;
 using Application.Common.Interfaces;
+using Application.Common.Settings;
 using Application.Features.Auth.DTOs;
 using Domain.Responses;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Application.Features.Auth.Commands.Login;
 
 public class LoginCommandHandler(
     IIdentityService identityService,
     ITokenService tokenService,
+    IApplicationDbContext context,
+    IOptions<JwtSettings> jwtSettings,
     ILogger<LoginCommandHandler> logger)
     : IRequestHandler<LoginCommand, Response<AuthResponseDto>>
 {
@@ -27,10 +31,7 @@ public class LoginCommandHandler(
             var user = await identityService.FindUserByEmailAsync(dto.Email, cancellationToken);
 
             if (user == null || !user.IsActive)
-            {
-                logger.LogWarning("Login failed. User not found or inactive");
                 return new Response<AuthResponseDto>(HttpStatusCode.Unauthorized, GenericError);
-            }
 
             if (!await identityService.IsEmailConfirmedAsync(user, cancellationToken))
                 return new Response<AuthResponseDto>(HttpStatusCode.Unauthorized, "Почтаи электронии шумо тасдиқ карда нашудааст.");
@@ -43,17 +44,28 @@ public class LoginCommandHandler(
             if (!passwordValid)
             {
                 await identityService.RecordAccessFailureAsync(user, cancellationToken);
-                logger.LogWarning("Wrong password for user {UserId}", user.Id);
                 return new Response<AuthResponseDto>(HttpStatusCode.Unauthorized, GenericError);
             }
 
             await identityService.ResetAccessFailedCountAsync(user, cancellationToken);
 
             var roles = await identityService.GetUserRolesAsync(user, cancellationToken);
-
             var (token, expiresAt) = tokenService.GenerateToken(user, roles);
 
-            var response = new AuthResponseDto(token, expiresAt, user.Id, user.FullName, user.Email ?? string.Empty, roles.ToList());
+            var refreshTokenValue = tokenService.GenerateRefreshToken();
+
+            context.RefreshTokens.Add(new Domain.Entities.RefreshToken
+            {
+                Token = refreshTokenValue,
+                UserId = user.Id,
+                ExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.Value.RefreshTokenExpiryDays)
+            });
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            var response = new AuthResponseDto(
+                token, expiresAt, refreshTokenValue,
+                user.Id, user.FullName, user.Email ?? string.Empty, roles.ToList());
 
             logger.LogInformation("Login successful {UserId}", user.Id);
 

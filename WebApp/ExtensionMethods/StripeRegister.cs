@@ -1,7 +1,7 @@
 using Application.Common.Interfaces;
+using Application.Common.Settings;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
-using Infrastructure.Settings;
 
 namespace WebApp.ExtensionMethods;
 

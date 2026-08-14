@@ -1,12 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Application.Common.Settings;
 using Domain.Entities.UserEntity;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure.Background;
 using Infrastructure.Data;
-using Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
@@ -33,7 +33,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Services.Configure<CloudinarySetting>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
-builder.Services.Configure<Application.Common.Settings.ShippingSetting>(
+builder.Services.Configure<ShippingSetting>(
     builder.Configuration.GetSection("ShippingSettings"));
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));

@@ -12,26 +12,28 @@ public class RevokedTokenCleanupService(
     {
         try
         {
-            logger.LogInformation("Starting cleanup of expired revoked tokens");
+            logger.LogInformation("Starting cleanup of expired tokens");
 
-            var expired = await context.RevokedTokens
+            var expiredRevoked = await context.RevokedTokens
                 .Where(rt => rt.ExpiresAt < DateTime.UtcNow)
                 .ToListAsync();
 
-            if (expired.Count == 0)
-            {
-                logger.LogInformation("No expired revoked tokens to clean up");
-                return;
-            }
+            var expiredRefresh = await context.RefreshTokens
+                .Where(rt => rt.ExpiresAt < DateTime.UtcNow)
+                .ToListAsync();
 
-            context.RevokedTokens.RemoveRange(expired);
+            context.RevokedTokens.RemoveRange(expiredRevoked);
+            context.RefreshTokens.RemoveRange(expiredRefresh);
+
             await context.SaveChangesAsync();
 
-            logger.LogInformation("Deleted {Count} expired revoked tokens", expired.Count);
+            logger.LogInformation(
+                "Deleted {RevokedCount} revoked tokens and {RefreshCount} expired refresh tokens",
+                expiredRevoked.Count, expiredRefresh.Count);
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Error cleaning up expired revoked tokens");
+            logger.LogError(e, "Error cleaning up expired tokens");
         }
     }
 }

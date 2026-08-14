@@ -1,6 +1,6 @@
-﻿using Domain.Entities.UserEntity;
+﻿using Application.Common.Settings;
+using Domain.Entities.UserEntity;
 using Domain.Enums;
-using Infrastructure.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

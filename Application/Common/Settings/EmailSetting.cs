@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Settings;
+﻿namespace Application.Common.Settings;
 
 public class EmailSettings
 {

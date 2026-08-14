@@ -1,7 +1,7 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Settings;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Infrastructure.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 

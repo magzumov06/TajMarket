@@ -3,8 +3,9 @@ using MediatR;
 
 namespace Application.Features.Auth.Commands.Logout;
 
-public class LogoutCommand(string jti, DateTime tokenExpiresAt) : IRequest<Response<string>>
+public class LogoutCommand(string jti, DateTime accessTokenExpiresAt, string? refreshToken) : IRequest<Response<string>>
 {
     public string Jti { get; } = jti;
-    public DateTime TokenExpiresAt { get; } = tokenExpiresAt;
+    public DateTime AccessTokenExpiresAt { get; } = accessTokenExpiresAt;
+    public string? RefreshToken { get; } = refreshToken;
 }

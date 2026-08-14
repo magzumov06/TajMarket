@@ -3,6 +3,7 @@ using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Responses;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Auth.Commands.Logout;
@@ -14,23 +15,25 @@ public class LogoutCommandHandler(
 {
     public async Task<Response<string>> Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
-        try
+        context.RevokedTokens.Add(new RevokedToken
         {
-            context.RevokedTokens.Add(new RevokedToken
-            {
-                Jti = request.Jti,
-                ExpiresAt = request.TokenExpiresAt
-            });
+            Jti = request.Jti,
+            ExpiresAt = request.AccessTokenExpiresAt
+        });
 
-            await context.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Token revoked (logout) {Jti}", request.Jti);
-
-            return new Response<string>(HttpStatusCode.OK, "Аз ҳисоб баромадед");
-        }
-        catch (Exception e)
+        if (!string.IsNullOrWhiteSpace(request.RefreshToken))
         {
-            return new Response<string>(HttpStatusCode.InternalServerError, "Internal server error");
+            var refreshToken = await context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, cancellationToken);
+
+            if (refreshToken is { RevokedAt: null })
+                refreshToken.RevokedAt = DateTime.UtcNow;
         }
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Logout completed, token revoked {Jti}", request.Jti);
+
+        return new Response<string>(HttpStatusCode.OK, "Аз ҳисоб баромадед");
     }
 }
