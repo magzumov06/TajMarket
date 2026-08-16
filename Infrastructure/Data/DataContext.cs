@@ -40,7 +40,8 @@ public class DataContext(
     public DbSet<Courier> Couriers { get; set; }   
     public DbSet<RevokedToken> RevokedTokens { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    
+    public DbSet<ReturnRequest> ReturnRequests { get; set; }
+
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken) =>
         Database.BeginTransactionAsync(cancellationToken);
     

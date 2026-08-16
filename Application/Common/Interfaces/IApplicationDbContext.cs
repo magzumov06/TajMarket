@@ -34,6 +34,7 @@ public interface IApplicationDbContext
     DbSet<User> Users { get; }
     DbSet<RevokedToken> RevokedTokens { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<ReturnRequest> ReturnRequests { get; }
     
     DbSet<IdentityUserRole<int>> UserRoles { get; } 
     DbSet<IdentityRole<int>> Roles { get; } 
