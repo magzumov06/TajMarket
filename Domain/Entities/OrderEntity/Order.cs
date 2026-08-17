@@ -26,6 +26,8 @@ public class Order
     public int? CourierId { get; set; }
     public Courier? Courier { get; set; }
     
+    public string DeliveryConfirmationCode { get; set; } = null!;
+    
     public DateTime? CustomerConfirmedAt { get; set; }   
 
 }

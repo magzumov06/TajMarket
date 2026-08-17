@@ -2,6 +2,7 @@
 using Application.Features.Order.DTOs;
 using Application.Features.Payment.DTOs;
 using Domain.DTOs.PaymentDtos;
+using Domain.Enums;
 
 namespace Application.Features.Order;
 
@@ -63,7 +64,10 @@ internal static class OrderMapper
                 o.Courier.User.PhoneNumber,
                 o.Courier.Status),
 
-        o.CustomerConfirmedAt
+        o.CustomerConfirmedAt,
+        o.Status is OrderStatus.Shipped or OrderStatus.Confirmed or OrderStatus.Processing
+            ? o.DeliveryConfirmationCode
+            : null
     );
 
     public static string StatusLabel(Domain.Enums.OrderStatus status) => status switch

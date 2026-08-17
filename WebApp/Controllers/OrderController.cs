@@ -3,6 +3,7 @@ using Application.Features.Order.Commands.ApproveReturnRequest;
 using Application.Features.Order.Commands.CancelOrder;
 using Application.Features.Order.Commands.CompleteOrder;
 using Application.Features.Order.Commands.CompleteReturn;
+using Application.Features.Order.Commands.ConfirmDeliveryByScan;
 using Application.Features.Order.Commands.CreateOrder;
 using Application.Features.Order.Commands.CreateReturnRequest;
 using Application.Features.Order.Commands.RejectReturnRequest;
@@ -12,6 +13,7 @@ using Application.Features.Order.DTOs;
 using Application.Features.Order.Queries.CalculateTotalPrice;
 using Application.Features.Order.Queries.GetMyReturnRequests;
 using Application.Features.Order.Queries.GetOrderDetail;
+using Application.Features.Order.Queries.GetOrderDetailForAdmin;
 using Application.Features.Order.Queries.GetOrderList;
 using Application.Features.Order.Queries.GetOrdersBySeller;
 using Application.Features.Order.Queries.GetPendingReturnRequests;
@@ -19,11 +21,20 @@ using Application.Features.Order.Queries.GetReturnRequestById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QRCoder;
 
 namespace WebApp.Controllers;
 
 public class OrderController(IMediator mediator) : BaseApiController
 {
+    [HttpPost("confirm-delivery-by-scan")]
+    [Authorize(Roles = "Courier")]
+    public async Task<IActionResult> ConfirmDeliveryByScan([FromBody] ConfirmDeliveryByScanDto dto)
+    {
+        var res = await mediator.Send(new ConfirmDeliveryByScanCommand(UserId, dto));
+        return StatusCode((int)res.StatusCode, res);
+    }
+    
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
@@ -142,5 +153,24 @@ public class OrderController(IMediator mediator) : BaseApiController
     {
         var res = await mediator.Send(new GetPendingReturnRequestsQuery());
         return StatusCode((int)res.StatusCode, res);
+    }
+    
+    [HttpGet("{orderId}/qr-code")]
+    [Authorize(Roles = "Admin,Seller")]
+    public async Task<IActionResult> GetDeliveryQrCode(int orderId)
+    {
+        var isAdmin = User.IsInRole("Admin");
+
+        var res = await mediator.Send(new GetOrderDetailForAdminQuery(orderId, UserId, isAdmin));
+
+        if (!res.Success || res.Data?.DeliveryConfirmationCode == null)
+            return NotFound(new { message = res.Message ?? "QR барои ин фармоиш дастрас нест" });
+
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrCodeData = qrGenerator.CreateQrCode(res.Data.DeliveryConfirmationCode, QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new PngByteQRCode(qrCodeData);
+
+        var bytes = qrCode.GetGraphic(20);
+        return File(bytes, "image/png");
     }
 }

@@ -12,6 +12,7 @@ using Application.Features.Courier.Queries.GetCourierHistory;
 using Application.Features.Courier.Queries.GetCourierLocation;
 using Application.Features.Courier.Queries.GetCourierMap;
 using Application.Features.Courier.Queries.GetMyOrders;
+using Application.Features.Courier.Queries.GetOptimizedRoute;
 using Domain.DTOs.CourierDto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -130,6 +131,14 @@ public class CouriersController(IMediator mediator) : BaseApiController
     public async Task<IActionResult> GetHistory([FromQuery] Application.Features.Courier.CourierHistoryFilter filter)
     {
         var res = await mediator.Send(new GetCourierHistoryQuery(UserId, filter));
+        return StatusCode((int)res.StatusCode, res);
+    }
+    
+    [HttpGet("route")]
+    [Authorize(Roles = "Courier")]
+    public async Task<IActionResult> GetOptimizedRoute()
+    {
+        var res = await mediator.Send(new GetOptimizedRouteQuery(UserId));
         return StatusCode((int)res.StatusCode, res);
     }
 

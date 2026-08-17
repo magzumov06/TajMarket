@@ -42,6 +42,7 @@ public class CreateOrderCommandHandler(
             var order = new Domain.Entities.OrderEntity.Order
             {
                 OrderNumber = OrderPricingHelper.GenerateOrderNumber(),
+                DeliveryConfirmationCode = Guid.NewGuid().ToString("N"),  
                 UserId = userId,
                 OrderDate = DateTime.UtcNow,
                 Status = OrderStatus.Pending,

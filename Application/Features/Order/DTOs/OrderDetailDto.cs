@@ -18,5 +18,6 @@ public record OrderDetailDto(
     List<OrderItemDto> Items,
     PaymentDto? Payment,
     CourierInfoDto? Courier,
-    DateTime? CustomerConfirmedAt 
+    DateTime? CustomerConfirmedAt ,
+    string? DeliveryConfirmationCode  
 );
