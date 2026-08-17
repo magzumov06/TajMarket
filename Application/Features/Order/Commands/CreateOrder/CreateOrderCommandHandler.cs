@@ -95,7 +95,8 @@ public class CreateOrderCommandHandler(
             await mediator.Send(new SendNotificationCommand(
                 userId,
                 "Фармоиш сабт шуд",
-                $"Фармоиши шумо №{order.OrderNumber} бо маблағи {pricing.TotalAmount:0.00} сомонӣ қабул шуд"), cancellationToken);
+                $"Фармоиши шумо №{order.OrderNumber} бо маблағи {pricing.TotalAmount:0.00} сомонӣ қабул шуд",
+                alsoSms: true), cancellationToken);
 
             logger.LogInformation("Order {OrderNumber} created successfully for user {UserId}", order.OrderNumber, userId);
 

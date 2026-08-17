@@ -46,6 +46,9 @@ builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("
 builder.Services.Configure<HangfireDashboardSettings>(
     builder.Configuration.GetSection("HangfireDashboard"));
 
+builder.Services.Configure<SmsSettings>(
+    builder.Configuration.GetSection("SmsSettings"));
+
 //DataContext
 builder.Services.AddDataContext(builder.Configuration);
 

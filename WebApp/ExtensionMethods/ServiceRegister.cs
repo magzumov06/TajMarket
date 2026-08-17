@@ -30,5 +30,7 @@ public static class ServiceRegister
         services.AddScoped<IRevokedTokenCleanupService, RevokedTokenCleanupService>();
         
         services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
+        
+        services.AddScoped<ISmsService, TwilioSmsService>();
     }
 }

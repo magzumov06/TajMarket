@@ -84,7 +84,8 @@ public class UpdateOrderStatusCommandHandler(
             await mediator.Send(new SendNotificationCommand(
                 order.UserId,
                 "Ҳолати фармоиш тағйир ёфт",
-                $"Фармоиши №{order.OrderNumber} ҳоло дар ҳолати «{OrderMapper.StatusLabel(dto.Status)}» аст"), cancellationToken);
+                $"Фармоиши №{order.OrderNumber} ҳоло дар ҳолати «{OrderMapper.StatusLabel(dto.Status)}» аст",
+                alsoSms: dto.Status is OrderStatus.Shipped or OrderStatus.Delivered), cancellationToken);
 
             logger.LogInformation("Order {OrderId} status updated successfully to {Status}", orderId, dto.Status);
 
