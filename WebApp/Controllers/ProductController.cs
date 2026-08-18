@@ -16,7 +16,7 @@ namespace WebApp.Controllers;
 public class ProductController(IMediator mediator) : BaseApiController
 {
     [HttpPost]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Roles = "Seller, Admin")]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
     {
         var res = await mediator.Send(new CreateProductCommand(UserId, dto));
@@ -32,7 +32,7 @@ public class ProductController(IMediator mediator) : BaseApiController
     }
     
     [HttpPut("{productId}")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Roles = "Seller, Admin")]
     public async Task<IActionResult> UpdateProduct(int productId, [FromBody] UpdateProductDto dto)
     {
         var res = await mediator.Send(new UpdateProductCommand(UserId, productId, dto));

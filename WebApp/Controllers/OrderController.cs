@@ -76,7 +76,7 @@ public class OrderController(IMediator mediator) : BaseApiController
     }
     
     [HttpPut("{orderId}/status")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Roles = "Seller, Admin")]
     public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
     {
         var res = await mediator.Send(new UpdateOrderStatusCommand(UserId, orderId, dto));
