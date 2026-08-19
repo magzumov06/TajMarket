@@ -1,5 +1,5 @@
 ﻿using Domain.Enums;
 
-namespace Domain.DTOs.CourierDto;
+namespace Application.Features.Courier.DTOs;
 
 public record UpdateCourierStatusDto(CourierStatus Status);

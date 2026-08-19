@@ -1,6 +1,6 @@
 using Application.Features.Payment.Commands.ProcessPayment;
+using Application.Features.Payment.DTOs;
 using Application.Features.Payment.Queries.GetPaymentByOrderId;
-using Domain.DTOs.PaymentDtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

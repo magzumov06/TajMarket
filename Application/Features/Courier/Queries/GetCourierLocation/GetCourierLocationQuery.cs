@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.CourierDto;
+﻿using Application.Features.Courier.DTOs;
+using Domain.DTOs.CourierDto;
 using Domain.Responses;
 using MediatR;
 

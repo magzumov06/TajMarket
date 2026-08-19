@@ -1,5 +1,5 @@
 ﻿using Application.Features.Order.DTOs;
-using Domain.DTOs.PaymentDtos;
+using Application.Features.Payment.DTOs;
 using Domain.Responses;
 using MediatR;
 

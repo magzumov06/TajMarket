@@ -1,4 +1,4 @@
-﻿namespace Domain.DTOs.CourierDto;
+﻿namespace Application.Features.Courier.DTOs;
 
 public record CourierMapDto(
     int Id,

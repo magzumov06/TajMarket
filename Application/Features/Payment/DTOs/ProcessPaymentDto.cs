@@ -1,6 +1,6 @@
 ﻿using Domain.Enums;
 
-namespace Domain.DTOs.PaymentDtos;
+namespace Application.Features.Payment.DTOs;
 
 public record ProcessPaymentDto(
     int OrderId,

@@ -15,25 +15,33 @@ public class LogoutCommandHandler(
 {
     public async Task<Response<string>> Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
-        context.RevokedTokens.Add(new RevokedToken
+        try
         {
-            Jti = request.Jti,
-            ExpiresAt = request.AccessTokenExpiresAt
-        });
+            context.RevokedTokens.Add(new RevokedToken
+            {
+                Jti = request.Jti,
+                ExpiresAt = request.AccessTokenExpiresAt
+            });
 
-        if (!string.IsNullOrWhiteSpace(request.RefreshToken))
-        {
-            var refreshToken = await context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                var refreshToken = await context.RefreshTokens
+                    .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken, cancellationToken);
 
-            if (refreshToken is { RevokedAt: null })
-                refreshToken.RevokedAt = DateTime.UtcNow;
+                if (refreshToken is { RevokedAt: null })
+                    refreshToken.RevokedAt = DateTime.UtcNow;
+            }
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Logout completed, token revoked {Jti}", request.Jti);
+
+            return new Response<string>(HttpStatusCode.OK, "Аз ҳисоб баромадед");
         }
-
-        await context.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation("Logout completed, token revoked {Jti}", request.Jti);
-
-        return new Response<string>(HttpStatusCode.OK, "Аз ҳисоб баромадед");
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Logout failed");
+            return new Response<string>(HttpStatusCode.InternalServerError, "Internal server error");
+        }
     }
 }

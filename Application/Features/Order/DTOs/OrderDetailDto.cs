@@ -1,6 +1,5 @@
 ﻿using Application.Features.Address.DTOs;
 using Application.Features.Payment.DTOs;
-using Domain.DTOs.PaymentDtos;
 using Domain.Enums;
 
 namespace Application.Features.Order.DTOs;
