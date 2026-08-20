@@ -12,9 +12,4 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\AuthDto\" />
-    <Folder Include="DTOs\PaymentDtos\" />
-  </ItemGroup>
-
 </Project>

@@ -1,5 +1,4 @@
 ﻿using Application.Features.Courier.DTOs;
-using Domain.DTOs.CourierDto;
 
 namespace Application.Features.Courier;
 

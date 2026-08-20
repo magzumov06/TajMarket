@@ -14,7 +14,6 @@ using Application.Features.Courier.Queries.GetCourierLocation;
 using Application.Features.Courier.Queries.GetCourierMap;
 using Application.Features.Courier.Queries.GetMyOrders;
 using Application.Features.Courier.Queries.GetOptimizedRoute;
-using Domain.DTOs.CourierDto;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
