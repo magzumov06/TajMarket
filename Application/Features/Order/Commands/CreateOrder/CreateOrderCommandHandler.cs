@@ -101,7 +101,7 @@ public class CreateOrderCommandHandler(
 
             logger.LogInformation("Order {OrderNumber} created successfully for user {UserId}", order.OrderNumber, userId);
 
-            return new Response<string>(HttpStatusCode.OK, "Order successfully created");
+            return new Response<string>(HttpStatusCode.Created, "Order successfully created");
         }
         catch (Exception e)
         {

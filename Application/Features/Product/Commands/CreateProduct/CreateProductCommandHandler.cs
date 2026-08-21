@@ -91,7 +91,7 @@ public class CreateProductCommandHandler(
 
             logger.LogInformation("Product created successfully: {ProductId} for seller {SellerUserId}", product.Id, sellerUserId);
 
-            return new Response<string>(HttpStatusCode.OK, "Product Added successfully");
+            return new Response<string>(HttpStatusCode.Created, "Product Added successfully");
         }
         catch (Exception e)
         {

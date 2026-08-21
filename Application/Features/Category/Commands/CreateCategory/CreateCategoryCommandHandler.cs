@@ -79,7 +79,7 @@ public class CreateCategoryCommandHandler(
             }
 
             logger.LogInformation("Category created successfully {CategoryId}", category.Id);
-            return new Response<string>(HttpStatusCode.OK, "Category created");
+            return new Response<string>(HttpStatusCode.Created, "Category created");
         }
         catch (ArgumentException e)
         {

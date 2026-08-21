@@ -79,7 +79,7 @@ public class RegisterCommandHandler(
 
             logger.LogInformation("User registered successfully {UserId}", user.Id);
 
-            return new Response<AuthResponseDto>(HttpStatusCode.OK, "Рамзи тасдиқ ба почтаи электронӣ фиристода шуд.");
+            return new Response<AuthResponseDto>(HttpStatusCode.Created, "Рамзи тасдиқ ба почтаи электронӣ фиристода шуд.");
         }
         catch (Exception ex)
         {

@@ -4,10 +4,10 @@ namespace Application.Features.Product;
 
 public class ProductFilter : BaseFilter
 {
-    public string? SearchTerm { get; init; }
-    public int? CategoryId { get; init; }
-    public decimal? MinPrice { get; init; }
-    public decimal? MaxPrice { get; init; }
-    public decimal? MinRating { get; init; }
-    public string? SortBy { get; init; }
+    public string? SearchTerm { get; set; }
+    public int? CategoryId { get; set; }
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public decimal? MinRating { get; set; }
+    public string? SortBy { get; set; }
 }

@@ -69,15 +69,15 @@ internal static class OrderMapper
             : null
     );
 
-    public static string StatusLabel(Domain.Enums.OrderStatus status) => status switch
+    public static string StatusLabel(OrderStatus status) => status switch
     {
-        Domain.Enums.OrderStatus.Pending => "Дар интизорӣ",
-        Domain.Enums.OrderStatus.Confirmed => "Тасдиқшуда",
-        Domain.Enums.OrderStatus.Processing => "Дар ҳоли тайёркунӣ",
-        Domain.Enums.OrderStatus.Shipped => "Фиристода шуд",
-        Domain.Enums.OrderStatus.Delivered => "Расонида шуд",
-        Domain.Enums.OrderStatus.Cancelled => "Бекоршуда",
-        Domain.Enums.OrderStatus.Returned => "Баргардонидашуда",
+        OrderStatus.Pending => "Дар интизорӣ",
+        OrderStatus.Confirmed => "Тасдиқшуда",
+        OrderStatus.Processing => "Дар ҳоли тайёркунӣ",
+        OrderStatus.Shipped => "Фиристода шуд",
+        OrderStatus.Delivered => "Расонида шуд",
+        OrderStatus.Cancelled => "Бекоршуда",
+        OrderStatus.Returned => "Баргардонидашуда",
         _ => status.ToString()
     };
 }
