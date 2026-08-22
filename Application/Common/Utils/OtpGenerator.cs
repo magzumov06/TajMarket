@@ -1,6 +1,6 @@
-﻿namespace Infrastructure.Helpers;
+﻿using System.Security.Cryptography;
 
-using System.Security.Cryptography;
+namespace Application.Common.Utils;
 
 public static class OtpGenerator
 {
