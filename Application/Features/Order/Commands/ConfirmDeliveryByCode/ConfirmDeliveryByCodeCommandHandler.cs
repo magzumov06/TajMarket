@@ -67,10 +67,20 @@ public class ConfirmDeliveryByCodeCommandHandler(
                 return new Response<OrderDetailDto>(HttpStatusCode.InternalServerError, "Рамзи тасдиқ барои ин фармоиш мавҷуд нест");
             }
 
+            if (order.DeliveryCodeAttempts >= MaxAttempts)
+            {
+                logger.LogWarning("Too many failed delivery code attempts for order {OrderId}", orderId);
+                return new Response<OrderDetailDto>(HttpStatusCode.BadRequest,
+                    "Шумораи кӯшишҳо тамом шуд. Бо маъмурият тамос гиред");
+            }
+
             if (dto.Code.Trim() != order.DeliveryConfirmationCode)
             {
-                logger.LogWarning("Wrong delivery code entered for order {OrderId} by courier {CourierId}", orderId, courier.Id);
-                return new Response<OrderDetailDto>(HttpStatusCode.BadRequest, "Рамз нодуруст аст");
+                order.DeliveryCodeAttempts++;
+                await context.SaveChangesAsync(cancellationToken);  
+                logger.LogWarning("Wrong delivery code entered for order {OrderId}", orderId);
+                return new Response<OrderDetailDto>(HttpStatusCode.BadRequest,
+                    $"Рамз нодуруст аст ({MaxAttempts - order.DeliveryCodeAttempts} кӯшиши боқимонда)");
             }
 
             order.Status = OrderStatus.Delivered;

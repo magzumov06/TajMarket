@@ -23,11 +23,13 @@ public class Order
     public ICollection<OrderItem> OrderItems { get; set; }
     public Payment? Payment { get; set; }
     
+    public int DeliveryCodeAttempts { get; set; } = 0;
+    
     public int? CourierId { get; set; }
     public Courier? Courier { get; set; }
-    
-    public string DeliveryConfirmationCode { get; set; } = null!;
-    
+
+    public string DeliveryConfirmationCode { get; set; }
+
     public DateTime? CustomerConfirmedAt { get; set; }   
 
 }
