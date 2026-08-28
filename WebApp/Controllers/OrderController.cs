@@ -4,7 +4,6 @@ using Application.Features.Order.Commands.CancelOrder;
 using Application.Features.Order.Commands.CompleteOrder;
 using Application.Features.Order.Commands.CompleteReturn;
 using Application.Features.Order.Commands.ConfirmDeliveryByCode;
-using Application.Features.Order.Commands.ConfirmDeliveryByScan;
 using Application.Features.Order.Commands.CreateOrder;
 using Application.Features.Order.Commands.CreateReturnRequest;
 using Application.Features.Order.Commands.RejectReturnRequest;
@@ -14,7 +13,6 @@ using Application.Features.Order.DTOs;
 using Application.Features.Order.Queries.CalculateTotalPrice;
 using Application.Features.Order.Queries.GetMyReturnRequests;
 using Application.Features.Order.Queries.GetOrderDetail;
-using Application.Features.Order.Queries.GetOrderDetailForAdmin;
 using Application.Features.Order.Queries.GetOrderList;
 using Application.Features.Order.Queries.GetOrdersBySeller;
 using Application.Features.Order.Queries.GetPendingReturnRequests;
@@ -22,7 +20,6 @@ using Application.Features.Order.Queries.GetReturnRequestById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QRCoder;
 
 namespace WebApp.Controllers;
 

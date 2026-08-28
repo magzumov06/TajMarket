@@ -1,5 +1,4 @@
-﻿// Application/Features/Order/Commands/ConfirmDeliveryByCode/ConfirmDeliveryByCodeCommandHandler.cs
-using System.Net;
+﻿using System.Net;
 using Application.Common.Interfaces;
 using Application.Features.Notification.Commands.SendNotification;
 using Application.Features.Order.DTOs;
