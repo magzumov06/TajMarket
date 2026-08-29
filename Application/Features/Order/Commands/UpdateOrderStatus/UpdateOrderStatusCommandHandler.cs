@@ -52,7 +52,14 @@ public class UpdateOrderStatusCommandHandler(
 
             if (order.Status is OrderStatus.Cancelled or OrderStatus.Returned)
                 return new Response<OrderDetailDto>(HttpStatusCode.Conflict, "Ҳолати ин фармоиш дигар тағйирнопазир аст");
-
+            
+            if (dto.Status == OrderStatus.Delivered)
+            {
+                logger.LogWarning("Seller {SellerUserId} tried to set order {OrderId} directly to Delivered", sellerUserId, orderId);
+                return new Response<OrderDetailDto>(HttpStatusCode.BadRequest,
+                    "Фармоишро танҳо курьер тавассути рамзи тасдиқ метавонад ба 'Расонида шуд' гузаронад");
+            }
+            
             var wasAlreadyShipped = order.Status == OrderStatus.Shipped;
 
             order.Status = dto.Status;

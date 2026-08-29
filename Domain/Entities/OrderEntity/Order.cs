@@ -28,7 +28,7 @@ public class Order
     public int? CourierId { get; set; }
     public Courier? Courier { get; set; }
 
-    public string DeliveryConfirmationCode { get; set; }
+    public string? DeliveryConfirmationCode { get; set; }
 
     public DateTime? CustomerConfirmedAt { get; set; }   
 
